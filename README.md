@@ -12,7 +12,7 @@ Zondes borta datora (mikrokontroliera) programmējums
 
 ### 4. Konsolē: git config --global user.name "Vards Uzvards" 
 - git config --global user.email "epasts@mail.com"
-  - Izmanto to epastu, kurš piesaistīts profilam, kas var tikt klāt IRBE5 repozitorijai
+  - Izmanto to epastu, kurš piesaistīts profilam, kas var tikt klāt ZONDE00 repozitorijai
   - Var pārbaudīt, vai pareizi saglabāts ar tām pašām komandām, noņemot "" specificētos datus
 
    
@@ -30,11 +30,11 @@ Zondes borta datora (mikrokontroliera) programmējums
 
 # Darbība ar lokālo github repositoriju
 
-### 1. Konsolē: git remote add ZONDE00 https://github.com/VEA-IRBE5/Programmejums.git
-- turpmāk pie git pull var izmantot IRBE5 nevis pilno linku 
+### 1. Konsolē: git remote add ZONDE00_MCU_CODE https://github.com/ZONDE00/MCU_CODE.git
+- turpmāk pie git pull var izmantot ZONDE00_MCU_CODE nevis pilno linku 
 - ar šo pastās, vai sarakstā ir Konsolē: git remote -v
 
-### 2. Konsolē: git pull IRBE5 [Branch name]
+### 2. Konsolē: git pull ZONDE00_MCU_CODE [Branch name]
 - Lejupielādē norādītā zara saturu no repozitorijas, par zaru lietošanu konsultējies ar nodaļas galveno
 
 ### 3. Pēc pašreizējās darba tūres beigšanas neaizmirsti izveidot commit, lai dati nepazūd
@@ -42,4 +42,4 @@ Zondes borta datora (mikrokontroliera) programmējums
 - Konsolē: git status (pastās, vai viss ir ok)
 - Konsolē: git commit (Lūdzu izsmeļoši un ne pārāk gari aprakstiet izmainīto)(var izmantot: -m "Text here")
    
-### 4. Kad liekas, ka pašreizējais uzdevums ir gana labā stāvoklī, Konsolē: git push IRBE5 [Branch name]
+### 4. Kad liekas, ka pašreizējais uzdevums ir gana labā stāvoklī, Konsolē: git push ZONDE00_MCU_CODE [Branch name]
