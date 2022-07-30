@@ -1,4 +1,4 @@
-# MCU_CODE test
+# MCU_CODE
 Zondes borta datora (mikrokontroliera) programmējums
 
 # Git bash konfigurācija un lokālās repozitorijas izveide
