@@ -1,0 +1,7 @@
+../Core/Src/adt7310.c:68:12:adt7310_read_reg	40	static
+../Core/Src/adt7310.c:96:12:adt7310_write_reg	32	dynamic
+../Core/Src/adt7310.c:149:5:adt7310_set_config	16	static
+../Core/Src/adt7310.c:116:5:adt7310_init	32	static
+../Core/Src/adt7310.c:156:9:adt7310_read_raw	16	static
+../Core/Src/adt7310.c:169:9:adt7310_read	8	static
+../Core/Src/adt7310.c:181:7:adt7310_read_float	8	static
