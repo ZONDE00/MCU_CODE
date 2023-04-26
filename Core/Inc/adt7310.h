@@ -1,5 +1,5 @@
-#ifndef ADT7310_H
-#define ADT7310_H
+#ifndef __ADT7310_H
+#define __ADT7310_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -101,18 +101,6 @@ int adt7310_init(adt7310_t *dev, SPI_HandleTypeDef *hspi, uint8_t sensor_cs);
 int16_t adt7310_read_raw(const adt7310_t *dev);
 
 /**
- * @brief   Read temperature value from sensor and convert to milli-degrees Celsius.
- *
- * Divide the returned value by 1000 to get integer degrees.
- *
- * @param[in]  dev          pointer to sensor device descriptor
- *
- * @return                  temperature in milli-degrees Celsius
- * @return                  INT32_MIN on errors
- */
-int32_t adt7310_read(const adt7310_t *dev);
-
-/**
  * @brief   Read temperature value from sensor and convert to degrees Celsius.
  *
  * @param[in]  dev          pointer to sensor device descriptor
@@ -121,6 +109,10 @@ int32_t adt7310_read(const adt7310_t *dev);
  * @return                  NaN on errors
  */
 float adt7310_read_float(const adt7310_t *dev);
+
+int adt7310_resetspi(const adt7310_t *dev);
+int adt7310_configspi(const adt7310_t *dev);
+int adt7310_read_reg(const adt7310_t *dev, const uint8_t addr, const uint16_t len, uint8_t *buf);
 
 #ifdef __cplusplus
 }

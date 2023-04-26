@@ -41,7 +41,8 @@ Middlewares/Third_Party/FatFs/src/ff.o: \
  ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_tim_ex.h \
  ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h \
  ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h \
- ../Core/Inc/adt7310.h ../Middlewares/Third_Party/FatFs/src/diskio.h
+ ../Core/Inc/adt7310.h ../Core/Inc/bme680_defs.h \
+ ../Middlewares/Third_Party/FatFs/src/diskio.h
 ../Middlewares/Third_Party/FatFs/src/ff.h:
 ../Middlewares/Third_Party/FatFs/src/integer.h:
 ../FATFS/Target/ffconf.h:
@@ -86,4 +87,5 @@ Middlewares/Third_Party/FatFs/src/ff.o: \
 ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart.h:
 ../Drivers/STM32G0xx_HAL_Driver/Inc/stm32g0xx_hal_uart_ex.h:
 ../Core/Inc/adt7310.h:
+../Core/Inc/bme680_defs.h:
 ../Middlewares/Third_Party/FatFs/src/diskio.h:

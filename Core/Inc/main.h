@@ -32,6 +32,9 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "adt7310.h"
+#include <stdint.h>
+#include <stddef.h>
+#include "bme680_defs.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -68,6 +71,12 @@ void select_camera_port(uint8_t cam_port);
 #define COM_TX_GPIO_Port GPIOA
 #define COM_RX_Pin GPIO_PIN_1
 #define COM_RX_GPIO_Port GPIOA
+#define ADC_BAT_Pin GPIO_PIN_2
+#define ADC_BAT_GPIO_Port GPIOA
+#define ADC_4V_Pin GPIO_PIN_3
+#define ADC_4V_GPIO_Port GPIOA
+#define ADC_3V3_Pin GPIO_PIN_4
+#define ADC_3V3_GPIO_Port GPIOA
 #define ROPE_CUT_Pin GPIO_PIN_5
 #define ROPE_CUT_GPIO_Port GPIOA
 #define BUZZER_Pin GPIO_PIN_6
@@ -100,6 +109,7 @@ void select_camera_port(uint8_t cam_port);
 #define DEBUX_RX_GPIO_Port GPIOB
 #define CAM_HB_1_Pin GPIO_PIN_8
 #define CAM_HB_1_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 #define RTC_MOD 0U
 #define IMU 1U

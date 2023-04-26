@@ -64,8 +64,8 @@ all: main-build
 main-build: MCU_CODE.elf secondary-outputs
 
 # Tool invocations
-MCU_CODE.elf MCU_CODE.map: $(OBJS) $(USER_OBJS) C:\Users\Rodrigo_Laurinovics\Documents\GitHub\MCU_CODE\STM32G071GBUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "MCU_CODE.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\Users\Rodrigo_Laurinovics\Documents\GitHub\MCU_CODE\STM32G071GBUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MCU_CODE.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+MCU_CODE.elf MCU_CODE.map: $(OBJS) $(USER_OBJS) C:\Users\localuser\Desktop\WASSUP\MCU_CODE\STM32G071GBUX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "MCU_CODE.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m0plus -T"C:\Users\localuser\Desktop\WASSUP\MCU_CODE\STM32G071GBUX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MCU_CODE.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
