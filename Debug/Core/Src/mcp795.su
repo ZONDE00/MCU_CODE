@@ -1,8 +1,0 @@
-../Core/Src/mcp795.c:21:5:mcp795_read_status_register	32	static
-../Core/Src/mcp795.c:38:5:mcp795_read_id	32	static
-../Core/Src/mcp795.c:8:5:mcp795_init	32	static
-../Core/Src/mcp795.c:100:5:mcp795_WR_unlock	24	static
-../Core/Src/mcp795.c:59:5:mcp795_write_id	48	static
-../Core/Src/mcp795.c:134:5:mcp795_read_time	56	static
-../Core/Src/mcp795.c:158:5:mcp795_set_time	56	static
-../Core/Src/mcp795.c:194:5:mcp795_start_counting	24	static

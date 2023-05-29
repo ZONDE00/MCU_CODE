@@ -25,6 +25,8 @@
 /* USER CODE END Includes */
 extern DMA_HandleTypeDef hdma_adc1;
 
+extern DMA_HandleTypeDef hdma_usart4_rx;
+
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN TD */
 
@@ -521,6 +523,24 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     GPIO_InitStruct.Alternate = GPIO_AF4_USART4;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+    /* USART4 DMA Init */
+    /* USART4_RX Init */
+    hdma_usart4_rx.Instance = DMA1_Channel2;
+    hdma_usart4_rx.Init.Request = DMA_REQUEST_USART4_RX;
+    hdma_usart4_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart4_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart4_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart4_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart4_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart4_rx.Init.Mode = DMA_CIRCULAR;
+    hdma_usart4_rx.Init.Priority = DMA_PRIORITY_LOW;
+    if (HAL_DMA_Init(&hdma_usart4_rx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(huart,hdmarx,hdma_usart4_rx);
+
   /* USER CODE BEGIN USART4_MspInit 1 */
 
   /* USER CODE END USART4_MspInit 1 */
@@ -568,6 +588,8 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     */
     HAL_GPIO_DeInit(GPIOA, COM_TX_Pin|COM_RX_Pin);
 
+    /* USART4 DMA DeInit */
+    HAL_DMA_DeInit(huart->hdmarx);
   /* USER CODE BEGIN USART4_MspDeInit 1 */
 
   /* USER CODE END USART4_MspDeInit 1 */

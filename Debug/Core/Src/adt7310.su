@@ -1,8 +1,0 @@
-../Core/Src/adt7310.c:130:5:adt7310_resetspi	24	static
-../Core/Src/adt7310.c:149:5:adt7310_configspi	24	static
-../Core/Src/adt7310.c:73:5:adt7310_read_reg	24	static
-../Core/Src/adt7310.c:107:12:adt7310_write_reg	24	static
-../Core/Src/adt7310.c:199:5:adt7310_set_config	16	static
-../Core/Src/adt7310.c:168:5:adt7310_init	16	static
-../Core/Src/adt7310.c:206:9:adt7310_read_raw	16	static
-../Core/Src/adt7310.c:219:7:adt7310_read_float	8	static
