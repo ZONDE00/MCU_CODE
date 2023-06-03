@@ -12,32 +12,36 @@
 
 // variables that MCU can requested from COM
 typedef enum {
-    HQ_CMD_RX_TIME,
-    HQ_CMD_RX_LONGITUDE,
-    HQ_CMD_RX_LATITUDE,
-    HQ_CMD_RX_ALTITUDE,
-    HQ_CMD_RX_SPEED,
-    HQ_CMD_RX_MCU_TMP,
-    HQ_CMD_RX_CMD_OK,
-    HQ_CMD_RX_CMD_NCK,
-    HQ_CMD_RX_CMD_CRC,
-} HQ_Commands_RX;
+    HQ_CMD_TX_LONGITUDE,
+    HQ_CMD_TX_LATITUDE,
+    HQ_CMD_TX_ALTITUDE,
+    HQ_CMD_TX_TIME,
+    HQ_CMD_TX_SPEED,
+    HQ_CMD_TX_MCU_TMP,
+    HQ_CMD_TX_CMD_OK,
+    HQ_CMD_TX_CMD_NCK,
+    HQ_CMD_TX_CMD_CRC,
+    HQ_CMD_TX_CMD_TMO,
+    HQ_CMD_TX_END
+} HQ_Commands_TX;
 
 // variables that COM can request from MCU
 typedef enum {
-    HQ_CMD_TX_BAT_VOLT,
-    HQ_CMD_TX_4V_CUR,
-    HQ_CMD_TX_3V3_CUR,
-    HQ_CMD_TX_3V3,
-    HQ_CMD_TX_4V,
-    HQ_CMD_TX_TMP_MCU,
-    HQ_CMD_TX_TMP_IN ,
-    HQ_CMD_TX_TMP_OUT,
-    HQ_CMD_TX_PRESSURE,
-    HQ_CMD_TX_HUMID,
-    HQ_CMD_TX_AIRQ,
-    HQ_CMD_TX_SEN_STATUS
-} HQ_Commands_TX;
+    HQ_CMD_RX_BAT_VOLT,
+    HQ_CMD_RX_4V_CUR,
+    HQ_CMD_RX_3V3_CUR,
+    HQ_CMD_RX_3V3,
+    HQ_CMD_RX_TMP_MCU,
+    HQ_CMD_RX_TMP_IN ,
+    HQ_CMD_RX_TMP_OUT,
+    HQ_CMD_RX_TMP_BME,
+    HQ_CMD_RX_PRESSURE,
+    HQ_CMD_RX_HUMID,
+    HQ_CMD_RX_AIRQ,
+    HQ_CMD_RX_AIR_RES,
+    HQ_CMD_RX_SEN_STATUS,
+    HQ_CMD_RX_END
+} HQ_Commands_RX;
 
 typedef enum {
     HQ_IDLE,
