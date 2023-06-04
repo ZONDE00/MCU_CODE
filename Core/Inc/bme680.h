@@ -55,8 +55,10 @@ extern "C"
 #include "main.h"
 #include "stm32g0xx_hal.h"
 
-int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint16_t data_len, SPI_HandleTypeDef *hspi);
-int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr, uint16_t data_len, SPI_HandleTypeDef *hspi);
+int8_t bus_write(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr,
+		uint16_t data_len, SPI_HandleTypeDef *hspi);
+int8_t bus_read(uint8_t dev_addr, uint8_t reg_addr, uint8_t *reg_data_ptr,
+		uint16_t data_len, SPI_HandleTypeDef *hspi);
 /* function prototype declarations */
 /*!
  *  @brief This API is the entry point.
@@ -82,7 +84,8 @@ int8_t bme680_init(struct bme680_dev *dev);
  * @return Result of API execution status
  * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
  */
-int8_t bme680_set_regs(const uint8_t *reg_addr, const uint8_t *reg_data, uint8_t len, struct bme680_dev *dev);
+int8_t bme680_set_regs(const uint8_t *reg_addr, const uint8_t *reg_data,
+		uint8_t len, struct bme680_dev *dev);
 
 /*!
  * @brief This API reads the data from the given register address of the sensor.
@@ -95,7 +98,8 @@ int8_t bme680_set_regs(const uint8_t *reg_addr, const uint8_t *reg_data, uint8_t
  * @return Result of API execution status
  * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
  */
-int8_t bme680_get_regs(uint8_t reg_addr, uint8_t *reg_data, uint16_t len, struct bme680_dev *dev);
+int8_t bme680_get_regs(uint8_t reg_addr, uint8_t *reg_data, uint16_t len,
+		struct bme680_dev *dev);
 
 /*!
  * @brief This API performs the soft reset of the sensor.
@@ -170,7 +174,8 @@ void bme680_get_profile_dur(uint16_t *duration, const struct bme680_dev *dev);
  * @return Result of API execution status
  * @retval zero -> Success / +ve value -> Warning / -ve value -> Error
  */
-int8_t bme680_get_sensor_data(struct bme680_field_data *data, struct bme680_dev *dev);
+int8_t bme680_get_sensor_data(struct bme680_field_data *data,
+		struct bme680_dev *dev);
 
 /*!
  * @brief This API is used to set the oversampling, filter and T,P,H, gas selection
@@ -199,7 +204,8 @@ int8_t bme680_get_sensor_data(struct bme680_field_data *data, struct bme680_dev 
  * @return Result of API execution status
  * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
  */
-int8_t bme680_set_sensor_settings(uint16_t desired_settings, struct bme680_dev *dev);
+int8_t bme680_set_sensor_settings(uint16_t desired_settings,
+		struct bme680_dev *dev);
 
 /*!
  * @brief This API is used to get the oversampling, filter and T,P,H, gas selection
@@ -212,7 +218,9 @@ int8_t bme680_set_sensor_settings(uint16_t desired_settings, struct bme680_dev *
  * @return Result of API execution status
  * @retval zero -> Success / +ve value -> Warning / -ve value -> Error.
  */
-int8_t bme680_get_sensor_settings(uint16_t desired_settings, struct bme680_dev *dev);
+int8_t bme680_get_sensor_settings(uint16_t desired_settings,
+		struct bme680_dev *dev);
+
 #ifdef __cplusplus
 }
 #endif /* End of CPP guard */

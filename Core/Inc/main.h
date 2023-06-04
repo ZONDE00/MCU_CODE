@@ -1,21 +1,21 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2022 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.h
+ * @brief          : Header for main.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2022 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -31,10 +31,19 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "adt7310.h"
 #include <stdint.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "bme680_defs.h"
+#include "adt7310.h"
+#include "mcp795.h"
+#include "bme680.h"
+#include "hq.h"
+#include "boardtrx.h"
+#include "cam.h"
+#include "lis2mdl_reg.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -57,11 +66,9 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 void process_adc_buffer(uint16_t *buffer);
-void calculate_calibration(void);
+void calculate_calibration(float *ta, float *tb);
 void deselect_sensors(void);
 void select_sensor(uint8_t sensor);
-void deselect_camera_port(void);
-void select_camera_port(uint8_t cam_port);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -95,8 +102,6 @@ void select_camera_port(uint8_t cam_port);
 #define S1_SENS_GPIO_Port GPIOA
 #define S2_SENS_Pin GPIO_PIN_12
 #define S2_SENS_GPIO_Port GPIOA
-#define CAM_HB_0_Pin GPIO_PIN_15
-#define CAM_HB_0_GPIO_Port GPIOA
 #define CLK_Pin GPIO_PIN_3
 #define CLK_GPIO_Port GPIOB
 #define MISO_Pin GPIO_PIN_4
@@ -107,8 +112,6 @@ void select_camera_port(uint8_t cam_port);
 #define DEBUX_TX_GPIO_Port GPIOB
 #define DEBUX_RX_Pin GPIO_PIN_7
 #define DEBUX_RX_GPIO_Port GPIOB
-#define CAM_HB_1_Pin GPIO_PIN_8
-#define CAM_HB_1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 #define RTC_MOD 0U
@@ -118,10 +121,6 @@ void select_camera_port(uint8_t cam_port);
 #define TEMP_IN 4U
 #define SD_CARD 5U
 #define MAG 6U
-#define CAM0_ON 0U
-#define CAM0_REC 1U
-#define CAM1_ON 2U
-#define CAM1_REC 3U
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

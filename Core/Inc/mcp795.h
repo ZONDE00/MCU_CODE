@@ -1,10 +1,6 @@
 #ifndef __MCP795_H
 #define __MCP795_H
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "stm32g0xx_hal.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -13,24 +9,17 @@ extern "C"
 /**
  * @brief   Device descriptor for MCP795 RTC.
  */
-typedef struct {
-    SPI_HandleTypeDef *hspi; 	/**< SPI bus the sensor is connected to */
-    uint8_t sensor_cs;			/**< CS ID for MUX */
-} mcp795_t;
 
+#include <stdint.h>
+#include <stdbool.h>
+#include "stm32g0xx_hal.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <main.h>
+#include <string.h>
 
-typedef enum{
-	Unknown_day = 0,
-	Monday = 1,
-	Tuesday = 2,
-	Wednesday = 3,
-	Thursday = 4,
-	Friday = 5,
-	Saturday = 6,
-	Sunday = 7
-} day_of_the_week_t;
-
-typedef enum{
+typedef enum {
 	Unknown_month = 0,
 	January = 1,
 	February = 2,
@@ -46,14 +35,16 @@ typedef enum{
 	December = 12
 } month_t;
 
-static inline const char *day_of_the_week(day_of_the_week_t day){
-    static const char *week_day[] = {"Unknown_day","Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-    return week_day[day];
-}
-static inline const char *month(month_t month){
-    static const char *months[] = {"Unknown_month","January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
-    return months[month];
-}
+typedef enum {
+	Unknown_day = 0,
+	Monday = 1,
+	Tuesday = 2,
+	Wednesday = 3,
+	Thursday = 4,
+	Friday = 5,
+	Saturday = 6,
+	Sunday = 7
+} day_of_the_week_t;
 
 typedef struct {
 	uint8_t year;
@@ -61,10 +52,30 @@ typedef struct {
 	uint8_t date;
 	day_of_the_week_t days;
 	uint8_t hours;
-    uint8_t minutes;
-    uint8_t seconds;
-    uint8_t milliseconds;
+	uint8_t minutes;
+	uint8_t seconds;
+	uint8_t milliseconds;
 } rtc_time_t;
+
+typedef struct {
+	SPI_HandleTypeDef *hspi; /**< SPI bus the sensor is connected to */
+	uint8_t sensor_cs; /**< CS ID for MUX */
+	rtc_time_t *rtc_time;
+	uint8_t rtc_status;
+	HAL_StatusTypeDef status; /**< Sensor status, true if still capable to communicate */
+} mcp795_t;
+
+static inline const char* day_of_the_week(day_of_the_week_t day) {
+	static const char *week_day[] = { "Unknown_day", "Monday", "Tuesday",
+			"Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+	return week_day[day];
+}
+static inline const char* month(month_t month) {
+	static const char *months[] = { "Unknown_month", "January", "February",
+			"March", "April", "May", "June", "July", "August", "September",
+			"October", "November", "December" };
+	return months[month];
+}
 
 #define RTC_ID "Kristers"
 //#define RTC_ID "Rodrigoo"
@@ -108,7 +119,7 @@ typedef struct {
 int mcp795_init(mcp795_t *dev, SPI_HandleTypeDef *hspi, uint8_t sensor_cs);
 int mcp795_read_id(mcp795_t *dev, uint8_t *id, uint16_t len);
 int mcp795_write_id(mcp795_t *dev, uint8_t *id, uint16_t len);
-int mcp795_WR_unlock(mcp795_t *dev);
+int mcp795_id_unlock(mcp795_t *dev);
 /**
  * @brief   Set configuration register of an MCP795 sensor
  *
@@ -119,10 +130,12 @@ int mcp795_WR_unlock(mcp795_t *dev);
  * @return                  -1 on error
  */
 int mcp795_set_config(mcp795_t *dev, uint8_t config);
-int mcp795_read_status_register(mcp795_t *dev, uint8_t rtc_status);
-int mcp795_read_time(mcp795_t *dev, rtc_time_t *rtc_time);
-int mcp795_set_time(mcp795_t *dev, rtc_time_t *rtc_time);
+int mcp795_read_status_register(mcp795_t *dev);
+int mcp795_read_time(mcp795_t *dev);
+int mcp795_set_time(mcp795_t *dev);
 int mcp795_start_counting(mcp795_t *dev);
+int mcp795_write_enable(mcp795_t *dev);
+int mcp795_eeprom_write(mcp795_t *dev);
 
 #ifdef __cplusplus
 }

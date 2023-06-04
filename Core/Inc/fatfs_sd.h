@@ -26,18 +26,18 @@
 #define CT_BLOCK	0x08		/* Block addressing */
 
 /* Functions */
-DSTATUS SD_disk_initialize (BYTE pdrv);
-DSTATUS SD_disk_status (BYTE pdrv);
-DRESULT SD_disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);
-DRESULT SD_disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count);
-DRESULT SD_disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);
+DSTATUS SD_disk_initialize(BYTE pdrv);
+DSTATUS SD_disk_status(BYTE pdrv);
+DRESULT SD_disk_read(BYTE pdrv, BYTE *buff, DWORD sector, UINT count);
+DRESULT SD_disk_write(BYTE pdrv, const BYTE *buff, DWORD sector, UINT count);
+DRESULT SD_disk_ioctl(BYTE pdrv, BYTE cmd, void *buff);
 
 #define SPI_TIMEOUT 100
 #define SD_ReadyWait_TIMEOUT 500
 #define SD_RxDataBlock_TIMEOUT 200
 #define SD_disk_init_TIMEOUT 1000
 
-extern SPI_HandleTypeDef 	hspi1;
+extern SPI_HandleTypeDef hspi1;
 #define HSPI_SDCARD		 	&hspi1
 //#define	SD_CS_PORT			GPIOA
 //#define SD_CS_PIN			GPIO_PIN_4

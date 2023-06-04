@@ -1,10 +1,6 @@
 #ifndef __ADT7310_H
 #define __ADT7310_H
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "stm32g0xx_hal.h"
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -13,11 +9,19 @@ extern "C"
 /**
  * @brief   Device descriptor for ADT7310 sensors.
  */
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
+#include <main.h>
+#include "stm32g0xx_hal.h"
+
 typedef struct {
-    SPI_HandleTypeDef *hspi; 	/**< SPI bus the sensor is connected to */
-    uint8_t sensor_cs;			/**< CS ID for MUX */
-    bool initialized;       	/**< sensor status, true if sensor is initialized */
-    bool high_res;          	/**< Sensor resolution, true if configured to 16 bit resolution */
+	SPI_HandleTypeDef *hspi; /**< SPI bus the sensor is connected to */
+	uint8_t sensor_cs; /**< CS ID for MUX */
+	bool initialized; /**< sensor status, true if sensor is initialized */
+	bool high_res; /**< Sensor resolution, true if configured to 16 bit resolution */
+	HAL_StatusTypeDef status; /**< Sensor status, true if still capable to communicate */
 } adt7310_t;
 
 /**
@@ -112,7 +116,8 @@ float adt7310_read_float(const adt7310_t *dev);
 
 int adt7310_resetspi(const adt7310_t *dev);
 int adt7310_configspi(const adt7310_t *dev);
-int adt7310_read_reg(const adt7310_t *dev, const uint8_t addr, const uint16_t len, uint8_t *buf);
+int adt7310_read_reg(const adt7310_t *dev, const uint8_t addr,
+		const uint16_t len, uint8_t *buf);
 
 #ifdef __cplusplus
 }

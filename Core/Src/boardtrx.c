@@ -50,106 +50,112 @@ uint8_t brdRequestQueCmdRx[BOARDTRX_CMD_COUNT];
 
 //@brief Does sanity checks and makes sure all is somewhat ok
 BOARDTRX_Status BOARDTRX_Init(BOARDTRX_Handle *handle) {
-    if (handle == 0x00) {
-        brdState.errorTRX = BOARDTRX_INT;
-        brdState.status = BOARDTRX_ERROR;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (handle == 0x00) {
+		brdState.errorTRX = BOARDTRX_INT;
+		brdState.status = BOARDTRX_ERROR;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    brdHandle = handle;
+	brdHandle = handle;
 
-    if (brdHandle->uart == 0x00) {
-        brdState.errorTRX = BOARDTRX_INT;
-        brdState.status = BOARDTRX_ERROR;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (brdHandle->uart == 0x00) {
+		brdState.errorTRX = BOARDTRX_INT;
+		brdState.status = BOARDTRX_ERROR;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    if (brdHandle->countDataRx > 0) {
-        uint8_t tmpLen = brdHandle->countDataRx;
-        if (brdHandle->dataRx == 0x00 || tmpLen > BOARDTRX_DATA_COUNT || tmpLen > BOARDTRX_HARD_MAX) {
-            brdState.status = BOARDTRX_ERROR;
-            brdState.errorTRX = BOARDTRX_INT;
-            brdState.isNewError = 1;
-            return brdState;
-        }
-    }
+	if (brdHandle->countDataRx > 0) {
+		uint8_t tmpLen = brdHandle->countDataRx;
+		if (brdHandle->dataRx
+				== 0x00|| tmpLen > BOARDTRX_DATA_COUNT || tmpLen > BOARDTRX_HARD_MAX) {
+			brdState.status = BOARDTRX_ERROR;
+			brdState.errorTRX = BOARDTRX_INT;
+			brdState.isNewError = 1;
+			return brdState;
+		}
+	}
 
-    if (brdHandle->countDataTx > 0) {
-        uint8_t tmpLen = brdHandle->countDataTx;
-        if (brdHandle->dataTx == 0x00 || tmpLen > BOARDTRX_DATA_COUNT || tmpLen > BOARDTRX_HARD_MAX) {
-            brdState.status = BOARDTRX_ERROR;
-            brdState.errorTRX = BOARDTRX_INT;
-            brdState.isNewError = 1;
-            return brdState;
-        }
-    }
+	if (brdHandle->countDataTx > 0) {
+		uint8_t tmpLen = brdHandle->countDataTx;
+		if (brdHandle->dataTx
+				== 0x00|| tmpLen > BOARDTRX_DATA_COUNT || tmpLen > BOARDTRX_HARD_MAX) {
+			brdState.status = BOARDTRX_ERROR;
+			brdState.errorTRX = BOARDTRX_INT;
+			brdState.isNewError = 1;
+			return brdState;
+		}
+	}
 
-    if (brdHandle->countCmdRx > 0) {
-        uint8_t tmpLen = brdHandle->countCmdRx;
-        if (brdHandle->cmdRx == 0x00 || tmpLen > BOARDTRX_CMD_COUNT || tmpLen > BOARDTRX_HARD_MAX) {
-            brdState.status = BOARDTRX_ERROR;
-            brdState.errorTRX = BOARDTRX_INT;
-            brdState.isNewError = 1;
-            return brdState;
-        }
-    }
+	if (brdHandle->countCmdRx > 0) {
+		uint8_t tmpLen = brdHandle->countCmdRx;
+		if (brdHandle->cmdRx
+				== 0x00|| tmpLen > BOARDTRX_CMD_COUNT || tmpLen > BOARDTRX_HARD_MAX) {
+			brdState.status = BOARDTRX_ERROR;
+			brdState.errorTRX = BOARDTRX_INT;
+			brdState.isNewError = 1;
+			return brdState;
+		}
+	}
 
-    if (brdHandle->countCmdTx > 0) {
-        uint8_t tmpLen = brdHandle->countCmdTx;
-        if (brdHandle->cmdTx == 0x00 || tmpLen > BOARDTRX_CMD_COUNT || tmpLen > BOARDTRX_HARD_MAX) {
-            brdState.status = BOARDTRX_ERROR;
-            brdState.errorTRX = BOARDTRX_INT;
-            brdState.isNewError = 1;
-            return brdState;
-        }
-    }
+	if (brdHandle->countCmdTx > 0) {
+		uint8_t tmpLen = brdHandle->countCmdTx;
+		if (brdHandle->cmdTx
+				== 0x00|| tmpLen > BOARDTRX_CMD_COUNT || tmpLen > BOARDTRX_HARD_MAX) {
+			brdState.status = BOARDTRX_ERROR;
+			brdState.errorTRX = BOARDTRX_INT;
+			brdState.isNewError = 1;
+			return brdState;
+		}
+	}
 
-    if (brdHandle->countDataTx == 0 && brdHandle->countDataRx == 0 && brdHandle->countCmdRx == 0 && brdHandle->countCmdTx == 0) {
-        brdState.status = BOARDTRX_ERROR;
-        brdState.errorTRX = BOARDTRX_INT;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (brdHandle->countDataTx == 0 && brdHandle->countDataRx == 0
+			&& brdHandle->countCmdRx == 0 && brdHandle->countCmdTx == 0) {
+		brdState.status = BOARDTRX_ERROR;
+		brdState.errorTRX = BOARDTRX_INT;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    HAL_StatusTypeDef tmp = HAL_UART_Receive_DMA(brdHandle->uart, &brdUartRx, 1);
+	HAL_StatusTypeDef tmp = HAL_UART_Receive_DMA(brdHandle->uart, &brdUartRx,
+			1);
 
-    if (tmp != HAL_OK) {
-        brdState.status = BOARDTRX_ERROR;
-        brdState.errorTRX = BOARDTRX_INT;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (tmp != HAL_OK) {
+		brdState.status = BOARDTRX_ERROR;
+		brdState.errorTRX = BOARDTRX_INT;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    brdState.status = BOARDTRX_OK;
-    brdInitialised = 1;
-    return brdState;
+	brdState.status = BOARDTRX_OK;
+	brdInitialised = 1;
+	return brdState;
 }
 
 BOARDTRX_Status BOARDTRX_CmdSend(uint8_t nr) {
-    if (!brdInitialised) {
-        brdState.status = BOARDTRX_ERROR;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (!brdInitialised) {
+		brdState.status = BOARDTRX_ERROR;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    if (nr >= brdHandle->countCmdTx) {
-        brdState.status = BOARDTRX_ERROR;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (nr >= brdHandle->countCmdTx) {
+		brdState.status = BOARDTRX_ERROR;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    if(brdHandle->cmdTx[nr]->wasSent){
-        brdHandle->cmdTx[nr]->wasSent = 0;
-        brdHandle->cmdTx[nr]->id++;
-    }
+	if (brdHandle->cmdTx[nr]->wasSent) {
+		brdHandle->cmdTx[nr]->wasSent = 0;
+		brdHandle->cmdTx[nr]->id++;
+	}
 
-    if(brdHandle->cmdTx[nr]->id == 0){
-        brdHandle->cmdTx[nr]->id++;
-    }
+	if (brdHandle->cmdTx[nr]->id == 0) {
+		brdHandle->cmdTx[nr]->id++;
+	}
 
-    return BOARDTRX_AddToQue(BOARDTRX_CMD_TX, nr);
+	return BOARDTRX_AddToQue(BOARDTRX_CMD_TX, nr);
 }
 
 /*
@@ -159,10 +165,10 @@ BOARDTRX_Status BOARDTRX_CmdSend(uint8_t nr) {
  * @retval status of CMD
  */
 BOARDTRX_CMD_Status BOARDTRX_CmdGetStatus(uint8_t nr) {
-    if (nr < brdHandle->countCmdTx) {
-        return brdHandle->cmdTx[nr]->status;
-    }
-    return BOARDTRX_CMD_DEF;
+	if (nr < brdHandle->countCmdTx) {
+		return brdHandle->cmdTx[nr]->status;
+	}
+	return BOARDTRX_CMD_DEF;
 }
 
 /*
@@ -171,384 +177,392 @@ BOARDTRX_CMD_Status BOARDTRX_CmdGetStatus(uint8_t nr) {
  * @retval status of CMD
  */
 void BOARDTRX_CmdClearStatus(uint8_t nr) {
-    if (nr < brdHandle->countCmdTx) {
-        brdHandle->cmdTx[nr]->status = BOARDTRX_CMD_DEF;
-    }
+	if (nr < brdHandle->countCmdTx) {
+		brdHandle->cmdTx[nr]->status = BOARDTRX_CMD_DEF;
+	}
 }
 
 BOARDTRX_Status BOARDTRX_DataRequestAll() {
-    if (!brdInitialised) {
-        brdState.status = BOARDTRX_ERROR;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (!brdInitialised) {
+		brdState.status = BOARDTRX_ERROR;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    for (uint8_t i = 0; i < brdHandle->countDataTx; i++) {
-        BOARDTRX_AddToQue(BOARDTRX_DATA_TX, i);
-    }
+	for (uint8_t i = 0; i < brdHandle->countDataTx; i++) {
+		BOARDTRX_AddToQue(BOARDTRX_DATA_TX, i);
+	}
 
-    return brdState;
+	return brdState;
 }
 
 BOARDTRX_Status BOARDTRX_DataRequest(uint8_t nr) {
-    if (!brdInitialised) {
-        brdState.status = BOARDTRX_ERROR;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (!brdInitialised) {
+		brdState.status = BOARDTRX_ERROR;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    if (nr >= brdHandle->countDataTx) {
-        brdState.status = BOARDTRX_ERROR;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (nr >= brdHandle->countDataTx) {
+		brdState.status = BOARDTRX_ERROR;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    return BOARDTRX_AddToQue(BOARDTRX_DATA_TX, nr);
+	return BOARDTRX_AddToQue(BOARDTRX_DATA_TX, nr);
 }
 
 BOARDTRX_Status BOARDTRX_Loop() {
-    if (!brdInitialised) {
-        brdState.status = BOARDTRX_ERROR;
-        brdState.isNewError = 1;
-        return brdState;
-    }
+	if (!brdInitialised) {
+		brdState.status = BOARDTRX_ERROR;
+		brdState.isNewError = 1;
+		return brdState;
+	}
 
-    // process received data
-    if (brdUartReceived) {
-        return BOARDTRX_ProcessRx();
-    }
+	// process received data
+	if (brdUartReceived) {
+		return BOARDTRX_ProcessRx();
+	}
 
-    // send data if any requested
-    uint8_t tmp = BOARDTRX_GetFromQue(BOARDTRX_DATA_RX, 0);
-    if (tmp != 255) {
-        BOARDTRX_ClearFromQue(BOARDTRX_DATA_RX, tmp);
-        return BOARDTRX_UART_Send(tmp, brdHandle->dataRx[tmp]->data, brdHandle->dataRx[tmp]->size);
-    }
+	// send data if any requested
+	uint8_t tmp = BOARDTRX_GetFromQue(BOARDTRX_DATA_RX, 0);
+	if (tmp != 255) {
+		BOARDTRX_ClearFromQue(BOARDTRX_DATA_RX, tmp);
+		return BOARDTRX_UART_Send(tmp, brdHandle->dataRx[tmp]->data,
+				brdHandle->dataRx[tmp]->size);
+	}
 
-    // request data if any needed
-    tmp = BOARDTRX_GetFromQue(BOARDTRX_DATA_TX, 0);
-    while (1) {
+	// request data if any needed
+	tmp = BOARDTRX_GetFromQue(BOARDTRX_DATA_TX, 0);
+	while (1) {
 
-        if (tmp != 255) {
-            return BOARDTRX_ProcessTx(BOARDTRX_DATA_TX, tmp);
-        } else {
-            break;
-        }
+		if (tmp != 255) {
+			return BOARDTRX_ProcessTx(BOARDTRX_DATA_TX, tmp);
+		} else {
+			break;
+		}
 
-        // get new request if already waiting current one
-        tmp = BOARDTRX_GetFromQue(BOARDTRX_DATA_TX, tmp + 1);
-    }
+		// get new request if already waiting current one
+		tmp = BOARDTRX_GetFromQue(BOARDTRX_DATA_TX, tmp + 1);
+	}
 
-    // send cmd response if any requested
-    tmp = BOARDTRX_GetFromQue(BOARDTRX_CMD_RX, 0);
-    if (tmp != 255) {
+	// send cmd response if any requested
+	tmp = BOARDTRX_GetFromQue(BOARDTRX_CMD_RX, 0);
+	if (tmp != 255) {
 
-        uint8_t response = BOARDTRX_RES_ACK;
+		uint8_t response = BOARDTRX_RES_ACK;
 
-        if (brdHandle->cmdRx[tmp]->status != BOARDTRX_CMD_NEW && brdHandle->cmdRx[tmp]->status != BOARDTRX_CMD_REP) {
-            response = BOARDTRX_RES_NCK;
-        }
+		if (brdHandle->cmdRx[tmp]->status != BOARDTRX_CMD_NEW
+				&& brdHandle->cmdRx[tmp]->status != BOARDTRX_CMD_REP) {
+			response = BOARDTRX_RES_NCK;
+		}
 
-        if(brdHandle->cmdRx[tmp]->status == BOARDTRX_CMD_REP){
-            response = BOARDTRX_RES_REP;
-        }
+		if (brdHandle->cmdRx[tmp]->status == BOARDTRX_CMD_REP) {
+			response = BOARDTRX_RES_REP;
+		}
 
-        // check wheter or not cmd is new, if is then callback
-        if (brdHandle->cmdRx[tmp]->status == BOARDTRX_CMD_NEW) {
-            if (brdHandle->cmdRx[tmp]->CMD_CB != 0x00) {
-                brdHandle->cmdRx[tmp]->CMD_CB();
-            }
-        }
+		// check wheter or not cmd is new, if is then callback
+		if (brdHandle->cmdRx[tmp]->status == BOARDTRX_CMD_NEW) {
+			if (brdHandle->cmdRx[tmp]->CMD_CB != 0x00) {
+				brdHandle->cmdRx[tmp]->CMD_CB();
+			}
+		}
 
-        BOARDTRX_ClearFromQue(BOARDTRX_CMD_RX, tmp);
-        tmp |= BOARDTRX_CMD_BYTE;
-        return BOARDTRX_UART_Send(tmp, &response, 1);
-    }
+		BOARDTRX_ClearFromQue(BOARDTRX_CMD_RX, tmp);
+		tmp |= BOARDTRX_CMD_BYTE;
+		return BOARDTRX_UART_Send(tmp, &response, 1);
+	}
 
-    // send CMDs
-    tmp = BOARDTRX_GetFromQue(BOARDTRX_CMD_TX, 0);
-    while (1) {
+	// send CMDs
+	tmp = BOARDTRX_GetFromQue(BOARDTRX_CMD_TX, 0);
+	while (1) {
 
-        if (tmp != 255) {
-            return BOARDTRX_ProcessTx(BOARDTRX_CMD_TX, tmp);
-        } else {
-            break;
-        }
+		if (tmp != 255) {
+			return BOARDTRX_ProcessTx(BOARDTRX_CMD_TX, tmp);
+		} else {
+			break;
+		}
 
-        // get new request if already waiting current one
-        tmp = BOARDTRX_GetFromQue(BOARDTRX_DATA_TX, tmp + 1);
-    }
+		// get new request if already waiting current one
+		tmp = BOARDTRX_GetFromQue(BOARDTRX_DATA_TX, tmp + 1);
+	}
 
-    return brdState;
+	return brdState;
 }
 
 BOARDTRX_Status BOARDTRX_ProcessTx(BOARDTRX_TRX_Target target, uint8_t nr) {
-    uint32_t timeout;
-    uint8_t retries;
-    uint8_t tmp = nr;
+	uint32_t timeout;
+	uint8_t retries;
+	uint8_t tmp = nr;
 
-    // is new transfer ?
-    if (target == BOARDTRX_DATA_TX) {
-        timeout = brdHandle->dataTx[nr]->timeout;
-    } else {
-        timeout = brdHandle->cmdTx[nr]->timeout;
-    }
+	// is new transfer ?
+	if (target == BOARDTRX_DATA_TX) {
+		timeout = brdHandle->dataTx[nr]->timeout;
+	} else {
+		timeout = brdHandle->cmdTx[nr]->timeout;
+	}
 
-    if (timeout == 0) {
-        if (target == BOARDTRX_DATA_TX) {
-            timeout = brdHandle->dataTx[nr]->retries = 0;
-        } else {
-            timeout = brdHandle->cmdTx[nr]->retries = 0;
-        }
+	if (timeout == 0) {
+		if (target == BOARDTRX_DATA_TX) {
+			timeout = brdHandle->dataTx[nr]->retries = 0;
+		} else {
+			timeout = brdHandle->cmdTx[nr]->retries = 0;
+		}
 
-        timeout = HAL_GetTick() + brdHandle->rxTimeout;
-        if (target == BOARDTRX_DATA_TX) {
-            timeout = brdHandle->dataTx[nr]->timeout = timeout;
-        } else {
-            timeout = brdHandle->cmdTx[nr]->timeout = timeout;
-        }
+		timeout = HAL_GetTick() + brdHandle->rxTimeout;
+		if (target == BOARDTRX_DATA_TX) {
+			timeout = brdHandle->dataTx[nr]->timeout = timeout;
+		} else {
+			timeout = brdHandle->cmdTx[nr]->timeout = timeout;
+		}
 
-        tmp += BOARDTRX_REQUEST_BYTE;
-        if (target == BOARDTRX_CMD_TX) {
-            tmp += BOARDTRX_CMD_BYTE;
-            return BOARDTRX_UART_Send(tmp, brdHandle->cmdTx[nr]->data, brdHandle->cmdTx[nr]->size);
-        }
-        return BOARDTRX_UART_Send(tmp, &tmp, 0);
+		tmp += BOARDTRX_REQUEST_BYTE;
+		if (target == BOARDTRX_CMD_TX) {
+			tmp += BOARDTRX_CMD_BYTE;
+			return BOARDTRX_UART_Send(tmp, brdHandle->cmdTx[nr]->data,
+					brdHandle->cmdTx[nr]->size);
+		}
+		return BOARDTRX_UART_Send(tmp, &tmp, 0);
 
-        // or was requested already ?
-    } else if (brdHandle->dataTx[tmp]->timeout < HAL_GetTick()) {
-        if (target == BOARDTRX_DATA_TX) {
-            timeout = brdHandle->dataTx[nr]->retries++;
-            retries = brdHandle->dataTx[nr]->retries;
-        } else {
-            timeout = brdHandle->cmdTx[nr]->retries++;
-            retries = brdHandle->cmdTx[nr]->retries;
-        }
-        if (retries >= brdHandle->rxRetries) {
-            brdState.isNewError = 1;
-            brdState.errorsTimeout += 1;
-            brdState.errorDataNr = tmp;
-            brdState.status = BOARDTRX_TIMEOUT;
-            brdState.errorTRX = BOARDTRX_RX;
-            // timed out clear request
-            brdHandle->dataTx[tmp]->timeout = 0;
-            if (target == BOARDTRX_DATA_TX) {
-                BOARDTRX_ClearFromQue(BOARDTRX_DATA_TX, tmp);
-                brdHandle->dataTx[tmp]->status = BOARDTRX_CMD_TIM;
-            } else {
-                BOARDTRX_ClearFromQue(BOARDTRX_CMD_TX, tmp);
-                brdHandle->cmdTx[tmp]->status = BOARDTRX_CMD_TIM;
-            }
+		// or was requested already ?
+	} else if (brdHandle->dataTx[tmp]->timeout < HAL_GetTick()) {
+		if (target == BOARDTRX_DATA_TX) {
+			timeout = brdHandle->dataTx[nr]->retries++;
+			retries = brdHandle->dataTx[nr]->retries;
+		} else {
+			timeout = brdHandle->cmdTx[nr]->retries++;
+			retries = brdHandle->cmdTx[nr]->retries;
+		}
+		if (retries >= brdHandle->rxRetries) {
+			brdState.isNewError = 1;
+			brdState.errorsTimeout += 1;
+			brdState.errorDataNr = tmp;
+			brdState.status = BOARDTRX_TIMEOUT;
+			brdState.errorTRX = BOARDTRX_RX;
+			// timed out clear request
+			brdHandle->dataTx[tmp]->timeout = 0;
+			if (target == BOARDTRX_DATA_TX) {
+				BOARDTRX_ClearFromQue(BOARDTRX_DATA_TX, tmp);
+				brdHandle->dataTx[tmp]->status = BOARDTRX_CMD_TIM;
+			} else {
+				BOARDTRX_ClearFromQue(BOARDTRX_CMD_TX, tmp);
+				brdHandle->cmdTx[tmp]->status = BOARDTRX_CMD_TIM;
+			}
 
-            return brdState;
-        } else {
-            // send new request to target
-            timeout = HAL_GetTick() + brdHandle->rxTimeout;
-            if (target == BOARDTRX_DATA_TX) {
-                timeout = brdHandle->dataTx[nr]->timeout = timeout;
-            } else {
-                timeout = brdHandle->cmdTx[nr]->timeout = timeout;
-            }
+			return brdState;
+		} else {
+			// send new request to target
+			timeout = HAL_GetTick() + brdHandle->rxTimeout;
+			if (target == BOARDTRX_DATA_TX) {
+				timeout = brdHandle->dataTx[nr]->timeout = timeout;
+			} else {
+				timeout = brdHandle->cmdTx[nr]->timeout = timeout;
+			}
 
-            tmp += BOARDTRX_REQUEST_BYTE;
-            if (target == BOARDTRX_CMD_TX) {
-                tmp += BOARDTRX_CMD_BYTE;
-                return BOARDTRX_UART_Send(tmp, brdHandle->cmdTx[nr]->data, brdHandle->cmdTx[nr]->size);
-            }
-            return BOARDTRX_UART_Send(tmp, &tmp, 0);
-        }
-    }
+			tmp += BOARDTRX_REQUEST_BYTE;
+			if (target == BOARDTRX_CMD_TX) {
+				tmp += BOARDTRX_CMD_BYTE;
+				return BOARDTRX_UART_Send(tmp, brdHandle->cmdTx[nr]->data,
+						brdHandle->cmdTx[nr]->size);
+			}
+			return BOARDTRX_UART_Send(tmp, &tmp, 0);
+		}
+	}
 
-    brdState.status = BOARDTRX_OK;
-    return brdState;
+	brdState.status = BOARDTRX_OK;
+	return brdState;
 }
 
 BOARDTRX_Status BOARDTRX_ProcessRx() {
-    brdUartReceived = 0;
+	brdUartReceived = 0;
 
-    // sanity check
-    if (brdUartRxSize == 0) {
-        brdState.isNewError = 1;
-        brdState.errorsRX += 1;
-        brdState.errorDataNr = 255;
-        brdState.status = BOARDTRX_ERROR_CMD;
-        brdState.errorTRX = BOARDTRX_RX;
-        return brdState;
-    }
+	// sanity check
+	if (brdUartRxSize == 0) {
+		brdState.isNewError = 1;
+		brdState.errorsRX += 1;
+		brdState.errorDataNr = 255;
+		brdState.status = BOARDTRX_ERROR_CMD;
+		brdState.errorTRX = BOARDTRX_RX;
+		return brdState;
+	}
 
-    // check crc
-    if (BOARDTRX_CheckCRC(brdUartRxBuf, brdUartRxSize) == 0) {
-        brdState.isNewError = 1;
-        brdState.errorsCRC += 1;
-        brdState.errorDataNr = 255;
-        brdState.status = BOARDTRX_ERROR_CRC;
-        brdState.errorTRX = BOARDTRX_RX;
-        return brdState;
-    }
+	// check crc
+	if (BOARDTRX_CheckCRC(brdUartRxBuf, brdUartRxSize) == 0) {
+		brdState.isNewError = 1;
+		brdState.errorsCRC += 1;
+		brdState.errorDataNr = 255;
+		brdState.status = BOARDTRX_ERROR_CRC;
+		brdState.errorTRX = BOARDTRX_RX;
+		return brdState;
+	}
 
-    uint8_t rqCmd = brdUartRxBuf[1] & (~BOARDTRX_REQUEST_BYTE);
-    rqCmd = rqCmd & (~BOARDTRX_CMD_BYTE);
+	uint8_t rqCmd = brdUartRxBuf[1] & (~BOARDTRX_REQUEST_BYTE);
+	rqCmd = rqCmd & (~BOARDTRX_CMD_BYTE);
 
-    // check if requesting data or sending to us
-    if (brdUartRxBuf[1] & BOARDTRX_REQUEST_BYTE) {
-        // CMD request
-        if (brdUartRxBuf[1] & BOARDTRX_CMD_BYTE) {
-            uint8_t id = brdUartRxBuf[2];
-            // is in bounds ?
-            if (rqCmd >= brdHandle->countCmdRx) {
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = brdUartRxBuf[1];
-                brdState.status = BOARDTRX_ERROR_CMD;
-                brdState.errorTRX = BOARDTRX_RX;
-                brdHandle->cmdRx[rqCmd]->status = BOARDTRX_CMD_NCK;
-                return brdState;
-            }
+	// check if requesting data or sending to us
+	if (brdUartRxBuf[1] & BOARDTRX_REQUEST_BYTE) {
+		// CMD request
+		if (brdUartRxBuf[1] & BOARDTRX_CMD_BYTE) {
+			uint8_t id = brdUartRxBuf[2];
+			// is in bounds ?
+			if (rqCmd >= brdHandle->countCmdRx) {
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = brdUartRxBuf[1];
+				brdState.status = BOARDTRX_ERROR_CMD;
+				brdState.errorTRX = BOARDTRX_RX;
+				brdHandle->cmdRx[rqCmd]->status = BOARDTRX_CMD_NCK;
+				return brdState;
+			}
 
-            // is size correct ?
-            if (brdHandle->cmdRx[rqCmd]->size != (brdUartRxSize - BOARDTRX_CMD_HEADER_SIZE)) {
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = rqCmd;
-                brdState.status = BOARDTRX_ERROR_CMD;
-                brdState.errorTRX = BOARDTRX_RX;
-                brdHandle->cmdRx[rqCmd]->status = BOARDTRX_CMD_NCK;
-                return brdState;
-            }
+			// is size correct ?
+			if (brdHandle->cmdRx[rqCmd]->size
+					!= (brdUartRxSize - BOARDTRX_CMD_HEADER_SIZE)) {
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = rqCmd;
+				brdState.status = BOARDTRX_ERROR_CMD;
+				brdState.errorTRX = BOARDTRX_RX;
+				brdHandle->cmdRx[rqCmd]->status = BOARDTRX_CMD_NCK;
+				return brdState;
+			}
 
-            if (id != brdHandle->cmdRx[rqCmd]->id) {
-                brdHandle->cmdRx[rqCmd]->status = BOARDTRX_CMD_NEW;
-                brdHandle->cmdRx[rqCmd]->id = id;
-                memcpy(brdHandle->cmdRx[rqCmd]->data, &brdUartRxBuf[3], brdHandle->cmdRx[rqCmd]->size);
-            } else {
-                brdHandle->cmdRx[rqCmd]->status = BOARDTRX_CMD_REP;
-            }
-            return BOARDTRX_AddToQue(BOARDTRX_CMD_RX, rqCmd);
-        } else {
-            uint8_t rqCmd = brdUartRxBuf[1] & (~BOARDTRX_REQUEST_BYTE);
-            // is in bounds ?
-            if (rqCmd >= brdHandle->countDataRx) {
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = brdUartRxBuf[1];
-                brdState.status = BOARDTRX_ERROR_CMD;
-                brdState.errorTRX = BOARDTRX_RX;
-                return brdState;
-            }
+			if (id != brdHandle->cmdRx[rqCmd]->id) {
+				brdHandle->cmdRx[rqCmd]->status = BOARDTRX_CMD_NEW;
+				brdHandle->cmdRx[rqCmd]->id = id;
+				memcpy(brdHandle->cmdRx[rqCmd]->data, &brdUartRxBuf[3],
+						brdHandle->cmdRx[rqCmd]->size);
+			} else {
+				brdHandle->cmdRx[rqCmd]->status = BOARDTRX_CMD_REP;
+			}
+			return BOARDTRX_AddToQue(BOARDTRX_CMD_RX, rqCmd);
+		} else {
+			uint8_t rqCmd = brdUartRxBuf[1] & (~BOARDTRX_REQUEST_BYTE);
+			// is in bounds ?
+			if (rqCmd >= brdHandle->countDataRx) {
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = brdUartRxBuf[1];
+				brdState.status = BOARDTRX_ERROR_CMD;
+				brdState.errorTRX = BOARDTRX_RX;
+				return brdState;
+			}
 
-            brdHandle->dataRx[rqCmd]->wasRequested = 1;
-            return BOARDTRX_AddToQue(BOARDTRX_DATA_RX, rqCmd);
-        }
-    } else {
-        if (brdUartRxBuf[1] & BOARDTRX_CMD_BYTE) {
-            // processing CMD response, should have ACK or NCK in response
-            uint8_t id = brdUartRxBuf[2];
-            uint8_t response = brdUartRxBuf[3];
+			brdHandle->dataRx[rqCmd]->wasRequested = 1;
+			return BOARDTRX_AddToQue(BOARDTRX_DATA_RX, rqCmd);
+		}
+	} else {
+		if (brdUartRxBuf[1] & BOARDTRX_CMD_BYTE) {
+			// processing CMD response, should have ACK or NCK in response
+			uint8_t id = brdUartRxBuf[2];
+			uint8_t response = brdUartRxBuf[3];
 
-            BOARDTRX_ClearFromQue(BOARDTRX_CMD_TX, rqCmd);
+			BOARDTRX_ClearFromQue(BOARDTRX_CMD_TX, rqCmd);
 
-            // id check, should match
-            if (id != brdHandle->cmdTx[rqCmd]->id) {
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = brdUartRxBuf[1];
-                brdState.status = BOARDTRX_ERROR_CMD;
-                brdState.errorTRX = BOARDTRX_RX;
-                return brdState;
-            }
+			// id check, should match
+			if (id != brdHandle->cmdTx[rqCmd]->id) {
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = brdUartRxBuf[1];
+				brdState.status = BOARDTRX_ERROR_CMD;
+				brdState.errorTRX = BOARDTRX_RX;
+				return brdState;
+			}
 
-            // response check
-            if (response == BOARDTRX_RES_ACK) {
-                brdHandle->cmdTx[rqCmd]->status = BOARDTRX_CMD_OK;
-                brdHandle->cmdTx[rqCmd]->wasSent = 1;
-                brdState.status = BOARDTRX_OK;
-                return brdState;
-            } else if (response == BOARDTRX_RES_NCK) {
-                brdHandle->cmdTx[rqCmd]->status = BOARDTRX_CMD_NOK;
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = brdUartRxBuf[1];
-                brdState.status = BOARDTRX_ERROR_CMD;
-                brdState.errorTRX = BOARDTRX_RX;
-                return brdState;
-            } else if (response == BOARDTRX_RES_REP) {
-                brdHandle->cmdTx[rqCmd]->status = BOARDTRX_CMD_REP;
-                brdHandle->cmdTx[rqCmd]->wasSent = 1;
-                brdState.status = BOARDTRX_OK;
-                return brdState;
-            } else {
-                brdHandle->cmdTx[rqCmd]->status = BOARDTRX_CMD_NOK;
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = brdUartRxBuf[1];
-                brdState.status = BOARDTRX_ERROR_CMD;
-                brdState.errorTRX = BOARDTRX_RX;
-                return brdState;
-            }
-        } else {
-            uint8_t rqCmd = brdUartRxBuf[1];
+			// response check
+			if (response == BOARDTRX_RES_ACK) {
+				brdHandle->cmdTx[rqCmd]->status = BOARDTRX_CMD_OK;
+				brdHandle->cmdTx[rqCmd]->wasSent = 1;
+				brdState.status = BOARDTRX_OK;
+				return brdState;
+			} else if (response == BOARDTRX_RES_NCK) {
+				brdHandle->cmdTx[rqCmd]->status = BOARDTRX_CMD_NOK;
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = brdUartRxBuf[1];
+				brdState.status = BOARDTRX_ERROR_CMD;
+				brdState.errorTRX = BOARDTRX_RX;
+				return brdState;
+			} else if (response == BOARDTRX_RES_REP) {
+				brdHandle->cmdTx[rqCmd]->status = BOARDTRX_CMD_REP;
+				brdHandle->cmdTx[rqCmd]->wasSent = 1;
+				brdState.status = BOARDTRX_OK;
+				return brdState;
+			} else {
+				brdHandle->cmdTx[rqCmd]->status = BOARDTRX_CMD_NOK;
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = brdUartRxBuf[1];
+				brdState.status = BOARDTRX_ERROR_CMD;
+				brdState.errorTRX = BOARDTRX_RX;
+				return brdState;
+			}
+		} else {
+			uint8_t rqCmd = brdUartRxBuf[1];
 
-            // is in bounds ?
-            if (rqCmd >= brdHandle->countDataTx) {
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = rqCmd;
-                brdState.status = BOARDTRX_ERROR_CMD;
-                brdState.errorTRX = BOARDTRX_RX;
-                return brdState;
-            }
+			// is in bounds ?
+			if (rqCmd >= brdHandle->countDataTx) {
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = rqCmd;
+				brdState.status = BOARDTRX_ERROR_CMD;
+				brdState.errorTRX = BOARDTRX_RX;
+				return brdState;
+			}
 
-            // is size correct ?
-            if (brdHandle->dataTx[rqCmd]->size != (brdUartRxSize - BOARDTRX_DATA_HEADER_SIZE)) {
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = rqCmd;
-                brdState.status = BOARDTRX_ERROR_CMD;
-                brdState.errorTRX = BOARDTRX_RX;
-                return brdState;
-            }
+			// is size correct ?
+			if (brdHandle->dataTx[rqCmd]->size
+					!= (brdUartRxSize - BOARDTRX_DATA_HEADER_SIZE)) {
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = rqCmd;
+				brdState.status = BOARDTRX_ERROR_CMD;
+				brdState.errorTRX = BOARDTRX_RX;
+				return brdState;
+			}
 
-            // copy received data to the memory pointed by struct
-            memcpy(brdHandle->dataTx[rqCmd]->data, &brdUartRxBuf[2], brdHandle->dataTx[rqCmd]->size);
-            brdHandle->dataTx[rqCmd]->status = 1;
-            brdHandle->dataTx[rqCmd]->timeout = 0;
-            brdHandle->dataTx[rqCmd]->retries = 0;
+			// copy received data to the memory pointed by struct
+			memcpy(brdHandle->dataTx[rqCmd]->data, &brdUartRxBuf[2],
+					brdHandle->dataTx[rqCmd]->size);
+			brdHandle->dataTx[rqCmd]->status = 1;
+			brdHandle->dataTx[rqCmd]->timeout = 0;
+			brdHandle->dataTx[rqCmd]->retries = 0;
 
-            // is request even active ?
-            if (brdRequestQueDataTx[rqCmd] == 0) {
-                brdState.isNewError = 1;
-                brdState.errorsRX += 1;
-                brdState.errorDataNr = rqCmd;
-                brdState.status = BOARDTRX_MISS;
-                brdState.errorTRX = BOARDTRX_RX;
-                return brdState;
-            } else {
-                BOARDTRX_ClearFromQue(BOARDTRX_DATA_TX, rqCmd);
-            }
+			// is request even active ?
+			if (brdRequestQueDataTx[rqCmd] == 0) {
+				brdState.isNewError = 1;
+				brdState.errorsRX += 1;
+				brdState.errorDataNr = rqCmd;
+				brdState.status = BOARDTRX_MISS;
+				brdState.errorTRX = BOARDTRX_RX;
+				return brdState;
+			} else {
+				BOARDTRX_ClearFromQue(BOARDTRX_DATA_TX, rqCmd);
+			}
 
-            brdState.status = BOARDTRX_OK;
-            return brdState;
-        }
-    }
+			brdState.status = BOARDTRX_OK;
+			return brdState;
+		}
+	}
 }
 
 uint8_t BOARDTRX_CheckCRC(uint8_t *data, uint8_t size) {
-    uint16_t tmpCrc = BOARDTRX_CalcCRC(data + 1, size - 2);
-    uint16_t crc = (data[size - 1] << 8) + data[size];
-    return crc == tmpCrc;
+	uint16_t tmpCrc = BOARDTRX_CalcCRC(data + 1, size - 2);
+	uint16_t crc = (data[size - 1] << 8) + data[size];
+	return crc == tmpCrc;
 }
 
 // internal functions
 uint16_t BOARDTRX_CalcCRC(uint8_t *data, uint8_t size) {
-    uint8_t crc_a = 0;
-    uint8_t crc_b = 0;
+	uint8_t crc_a = 0;
+	uint8_t crc_b = 0;
 
-    for (uint8_t i = 0; i < size; i++) {
-        crc_a ^= data[i];
-        crc_b ^= crc_a;
-    }
+	for (uint8_t i = 0; i < size; i++) {
+		crc_a ^= data[i];
+		crc_b ^= crc_a;
+	}
 
-    return (crc_a << 8) + crc_b;
+	return (crc_a << 8) + crc_b;
 }
 
 /*
@@ -557,52 +571,52 @@ uint16_t BOARDTRX_CalcCRC(uint8_t *data, uint8_t size) {
  * @retVal status of system
  */
 BOARDTRX_Status BOARDTRX_AddToQue(BOARDTRX_TRX_Target target, uint8_t dataNr) {
-    uint8_t tmp = 0;
+	uint8_t tmp = 0;
 
-    if (target == BOARDTRX_DATA_RX) {
-        tmp = brdRequestQueDataRx[dataNr];
-        if (!tmp) {
-            brdRequestQueDataRx[dataNr] = 1;
-        }
+	if (target == BOARDTRX_DATA_RX) {
+		tmp = brdRequestQueDataRx[dataNr];
+		if (!tmp) {
+			brdRequestQueDataRx[dataNr] = 1;
+		}
 
-        brdHandle->dataRx[dataNr]->wasRequested = 1;
+		brdHandle->dataRx[dataNr]->wasRequested = 1;
 
-    } else if (target == BOARDTRX_DATA_TX) {
-        tmp = brdRequestQueDataTx[dataNr];
-        if (!tmp) {
-            brdRequestQueDataTx[dataNr] = 1;
-        }
+	} else if (target == BOARDTRX_DATA_TX) {
+		tmp = brdRequestQueDataTx[dataNr];
+		if (!tmp) {
+			brdRequestQueDataTx[dataNr] = 1;
+		}
 
-        brdHandle->dataTx[dataNr]->retries = 1;
+		brdHandle->dataTx[dataNr]->retries = 1;
 
-    } else if (target == BOARDTRX_CMD_RX) {
-        tmp = brdRequestQueCmdRx[dataNr];
-        if (!tmp) {
-            brdRequestQueCmdRx[dataNr] = 1;
-        }
+	} else if (target == BOARDTRX_CMD_RX) {
+		tmp = brdRequestQueCmdRx[dataNr];
+		if (!tmp) {
+			brdRequestQueCmdRx[dataNr] = 1;
+		}
 
-    } else if (target == BOARDTRX_CMD_TX) {
-        tmp = brdRequestQueCmdTx[dataNr];
-        if (!tmp) {
-            brdRequestQueCmdTx[dataNr] = 1;
-        }
+	} else if (target == BOARDTRX_CMD_TX) {
+		tmp = brdRequestQueCmdTx[dataNr];
+		if (!tmp) {
+			brdRequestQueCmdTx[dataNr] = 1;
+		}
 
-        // reset retry parameter
-        brdHandle->cmdTx[dataNr]->retries = 0;
-        brdHandle->cmdTx[dataNr]->status = BOARDTRX_CMD_SEN;
-    }
+		// reset retry parameter
+		brdHandle->cmdTx[dataNr]->retries = 0;
+		brdHandle->cmdTx[dataNr]->status = BOARDTRX_CMD_SEN;
+	}
 
-    if (tmp) {
-        brdState.isNewError = 1;
-        brdState.errorsMissed += 1;
-        brdState.errorDataNr = dataNr;
-        brdState.status = BOARDTRX_MISS;
-        brdState.errorTRX = target;
-    } else {
-        brdState.status = BOARDTRX_OK;
-    }
+	if (tmp) {
+		brdState.isNewError = 1;
+		brdState.errorsMissed += 1;
+		brdState.errorDataNr = dataNr;
+		brdState.status = BOARDTRX_MISS;
+		brdState.errorTRX = target;
+	} else {
+		brdState.status = BOARDTRX_OK;
+	}
 
-    return brdState;
+	return brdState;
 }
 
 /*
@@ -612,36 +626,36 @@ BOARDTRX_Status BOARDTRX_AddToQue(BOARDTRX_TRX_Target target, uint8_t dataNr) {
  * @retval active request Nr or 255 if none
  */
 uint8_t BOARDTRX_GetFromQue(BOARDTRX_TRX_Target target, uint8_t startInd) {
-    uint8_t tmp = 0;
-    uint8_t max = 0;
+	uint8_t tmp = 0;
+	uint8_t max = 0;
 
-    if (target == BOARDTRX_DATA_RX) {
-        max = brdHandle->countDataRx;
-    } else if (target == BOARDTRX_DATA_TX) {
-        max = brdHandle->countDataTx;
-    } else if (target == BOARDTRX_CMD_RX) {
-        max = brdHandle->countCmdRx;
-    } else if (target == BOARDTRX_CMD_TX) {
-        max = brdHandle->countCmdTx;
-    }
+	if (target == BOARDTRX_DATA_RX) {
+		max = brdHandle->countDataRx;
+	} else if (target == BOARDTRX_DATA_TX) {
+		max = brdHandle->countDataTx;
+	} else if (target == BOARDTRX_CMD_RX) {
+		max = brdHandle->countCmdRx;
+	} else if (target == BOARDTRX_CMD_TX) {
+		max = brdHandle->countCmdTx;
+	}
 
-    for (uint8_t i = startInd; i < max; i++) {
-        if (target == BOARDTRX_DATA_RX) {
-            tmp = brdRequestQueDataRx[i];
-        } else if (target == BOARDTRX_DATA_TX) {
-            tmp = brdRequestQueDataTx[i];
-        } else if (target == BOARDTRX_CMD_RX) {
-            tmp = brdRequestQueCmdRx[i];
-        } else if (target == BOARDTRX_CMD_TX) {
-            tmp = brdRequestQueCmdTx[i];
-        }
+	for (uint8_t i = startInd; i < max; i++) {
+		if (target == BOARDTRX_DATA_RX) {
+			tmp = brdRequestQueDataRx[i];
+		} else if (target == BOARDTRX_DATA_TX) {
+			tmp = brdRequestQueDataTx[i];
+		} else if (target == BOARDTRX_CMD_RX) {
+			tmp = brdRequestQueCmdRx[i];
+		} else if (target == BOARDTRX_CMD_TX) {
+			tmp = brdRequestQueCmdTx[i];
+		}
 
-        if (tmp) {
-            return i;
-        }
-    }
+		if (tmp) {
+			return i;
+		}
+	}
 
-    return 255;
+	return 255;
 }
 
 /*
@@ -649,15 +663,15 @@ uint8_t BOARDTRX_GetFromQue(BOARDTRX_TRX_Target target, uint8_t startInd) {
  *
  */
 void BOARDTRX_ClearFromQue(BOARDTRX_TRX_Target target, uint8_t dataNr) {
-    if (target == BOARDTRX_DATA_RX) {
-        brdRequestQueDataRx[dataNr] = 0;
-    } else if (target == BOARDTRX_DATA_TX) {
-        brdRequestQueDataTx[dataNr] = 0;
-    } else if (target == BOARDTRX_CMD_RX) {
-        brdRequestQueCmdRx[dataNr] = 0;
-    } else if (target == BOARDTRX_CMD_TX) {
-        brdRequestQueCmdTx[dataNr] = 0;
-    }
+	if (target == BOARDTRX_DATA_RX) {
+		brdRequestQueDataRx[dataNr] = 0;
+	} else if (target == BOARDTRX_DATA_TX) {
+		brdRequestQueDataTx[dataNr] = 0;
+	} else if (target == BOARDTRX_CMD_RX) {
+		brdRequestQueCmdRx[dataNr] = 0;
+	} else if (target == BOARDTRX_CMD_TX) {
+		brdRequestQueCmdTx[dataNr] = 0;
+	}
 }
 
 /*
@@ -667,64 +681,65 @@ void BOARDTRX_ClearFromQue(BOARDTRX_TRX_Target target, uint8_t dataNr) {
  * @param size size of data to send
  */
 BOARDTRX_Status BOARDTRX_UART_Send(uint8_t nr, uint8_t *data, uint8_t size) {
-    uint8_t ptr = 0;
+	uint8_t ptr = 0;
 
-    // set start byte
-    brdUartTxBuf[ptr] = BOARDTRX_START_BYTE;
-    ptr++;
+	// set start byte
+	brdUartTxBuf[ptr] = BOARDTRX_START_BYTE;
+	ptr++;
 
-    // set length of data packet, 1 byte for nr + data size + 2 bytes crc
-    uint8_t totalSize = 1 + size + 2;
-    if (nr & BOARDTRX_CMD_BYTE) {
-        totalSize++; // id byte
-    }
-    brdUartTxBuf[ptr] = totalSize;
-    ptr++;
+	// set length of data packet, 1 byte for nr + data size + 2 bytes crc
+	uint8_t totalSize = 1 + size + 2;
+	if (nr & BOARDTRX_CMD_BYTE) {
+		totalSize++; // id byte
+	}
+	brdUartTxBuf[ptr] = totalSize;
+	ptr++;
 
-    // set data Nr
-    brdUartTxBuf[ptr] = nr;
-    ptr++;
+	// set data Nr
+	brdUartTxBuf[ptr] = nr;
+	ptr++;
 
-    // if cmd byte then add id
-    if (nr & BOARDTRX_CMD_BYTE) {
-        uint8_t ind = nr & (~BOARDTRX_CMD_BYTE);
-        ind = ind & (~BOARDTRX_REQUEST_BYTE);
-        if (nr & BOARDTRX_REQUEST_BYTE) {
-            brdUartTxBuf[ptr] = brdHandle->cmdTx[ind]->id;
-        } else {
-            brdUartTxBuf[ptr] = brdHandle->cmdRx[ind]->id;
-        }
-        ptr++;
-    }
+	// if cmd byte then add id
+	if (nr & BOARDTRX_CMD_BYTE) {
+		uint8_t ind = nr & (~BOARDTRX_CMD_BYTE);
+		ind = ind & (~BOARDTRX_REQUEST_BYTE);
+		if (nr & BOARDTRX_REQUEST_BYTE) {
+			brdUartTxBuf[ptr] = brdHandle->cmdTx[ind]->id;
+		} else {
+			brdUartTxBuf[ptr] = brdHandle->cmdRx[ind]->id;
+		}
+		ptr++;
+	}
 
-    // copy data if any
-    if (size > 0) {
-        memcpy(&brdUartTxBuf[ptr], data, size);
-        ptr += size;
-    }
+	// copy data if any
+	if (size > 0) {
+		memcpy(&brdUartTxBuf[ptr], data, size);
+		ptr += size;
+	}
 
-    // calculate crc for Nr + data
-    uint16_t crc = BOARDTRX_CalcCRC(&brdUartTxBuf[2], totalSize - 2);
+	// calculate crc for Nr + data
+	uint16_t crc = BOARDTRX_CalcCRC(&brdUartTxBuf[2], totalSize - 2);
 
-    // copy crc
-    brdUartTxBuf[ptr] = crc >> 8;
-    ptr++;
-    brdUartTxBuf[ptr] = crc & 0xff;
-    ptr++;
+	// copy crc
+	brdUartTxBuf[ptr] = crc >> 8;
+	ptr++;
+	brdUartTxBuf[ptr] = crc & 0xff;
+	ptr++;
 
-    HAL_StatusTypeDef ret = HAL_UART_Transmit(brdHandle->uart, brdUartTxBuf, ptr, 1000);
+	HAL_StatusTypeDef ret = HAL_UART_Transmit(brdHandle->uart, brdUartTxBuf,
+			ptr, 1000);
 
-    if (ret != HAL_OK) {
-        brdState.isNewError = 1;
-        brdState.errorsTX += 1;
-        brdState.errorDataNr = nr;
-        brdState.status = BOARDTRX_ERROR_TX;
-        brdState.errorTRX = BOARDTRX_TX;
-        return brdState;
-    }
+	if (ret != HAL_OK) {
+		brdState.isNewError = 1;
+		brdState.errorsTX += 1;
+		brdState.errorDataNr = nr;
+		brdState.status = BOARDTRX_ERROR_TX;
+		brdState.errorTRX = BOARDTRX_TX;
+		return brdState;
+	}
 
-    brdState.status = BOARDTRX_OK;
-    return brdState;
+	brdState.status = BOARDTRX_OK;
+	return brdState;
 }
 
 /*
@@ -732,7 +747,7 @@ BOARDTRX_Status BOARDTRX_UART_Send(uint8_t nr, uint8_t *data, uint8_t size) {
  *
  */
 void BOARDTRX_UART_RXERROR_CB() {
-    HAL_UART_Receive_DMA(brdHandle->uart, &brdUartRx, 1);
+	HAL_UART_Receive_DMA(brdHandle->uart, &brdUartRx, 1);
 }
 
 /*
@@ -741,23 +756,23 @@ void BOARDTRX_UART_RXERROR_CB() {
  *
  */
 void BOARDTRX_UART_RX_CB() {
-    if (brdUartRxInd >= 256) {
-        if (brdUartRx == BOARDTRX_START_BYTE) {
-            brdUartRxInd = 0;
-            brdUartRxSize = 0;
-        }
-    } else {
-        brdUartRxBuf[brdUartRxInd] = brdUartRx;
+	if (brdUartRxInd >= 256) {
+		if (brdUartRx == BOARDTRX_START_BYTE) {
+			brdUartRxInd = 0;
+			brdUartRxSize = 0;
+		}
+	} else {
+		brdUartRxBuf[brdUartRxInd] = brdUartRx;
 
-        if (brdUartRxInd == 0) {    // first byte will be size of packet
-            brdUartRxSize = brdUartRx;
-        }
+		if (brdUartRxInd == 0) {    // first byte will be size of packet
+			brdUartRxSize = brdUartRx;
+		}
 
-        if (brdUartRxInd == brdUartRxSize) {    // packet is received
-            brdUartReceived = 1;
-            brdUartRxInd = 257;
-        }
+		if (brdUartRxInd == brdUartRxSize) {    // packet is received
+			brdUartReceived = 1;
+			brdUartRxInd = 257;
+		}
 
-        brdUartRxInd++;
-    }
+		brdUartRxInd++;
+	}
 }
