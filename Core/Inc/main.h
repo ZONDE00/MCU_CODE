@@ -44,6 +44,7 @@ extern "C" {
 #include "boardtrx.h"
 #include "cam.h"
 #include "lis2mdl_reg.h"
+#include "lsm6dsrx_reg.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

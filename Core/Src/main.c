@@ -45,12 +45,18 @@
 #define    BOOT_TIME        20 //ms
 #define    WAIT_TIME_01     20 //ms
 #define    WAIT_TIME_02     60 //ms
+#define    BOOT_TIME_LSM6DRX           10 //ms
 
 #define    SAMPLES          50 //number of samples
 
 /* Self test limits. */
 #define    MIN_ST_LIMIT_mG         15.0f
 #define    MAX_ST_LIMIT_mG        500.0f
+
+#define    MIN_ST_LIMIT_mg        40.0f
+#define    MAX_ST_LIMIT_mg      1700.0f
+#define    MIN_ST_LIMIT_mdps   150000.0f
+#define    MAX_ST_LIMIT_mdps   700000.0f
 
 /* Self test results. */
 #define    ST_PASS     1U
@@ -133,10 +139,20 @@ static void MX_TIM17_Init(void);
 static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 uint8_t Mount_open_SD_Card();
-static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
-		uint16_t len);
-static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
-		uint16_t len);
+
+static int32_t lsm6dsrx_write(void *handle, uint8_t reg, const uint8_t *bufp,
+        uint16_t len);
+static int32_t lsm6dsrx_read(void *handle, uint8_t reg, uint8_t *bufp,
+        uint16_t len);
+static int32_t lis2mdl_write(void *handle, uint8_t reg, const uint8_t *bufp,
+        uint16_t len);
+static int32_t lis2mdl_read(void *handle, uint8_t reg, uint8_t *bufp,
+        uint16_t len);
+static int32_t spi_write(void *handle, uint8_t reg, const uint8_t *bufp,
+        uint16_t len);
+static int32_t spi_read(void *handle, uint8_t reg, uint8_t *bufp,
+        uint16_t len);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -172,7 +188,8 @@ int main(void) {
 	CAM_struct CAM_1;
 	CAM_struct CAM_2;
 	/* CAM specific */
-	stmdev_ctx_t dev_ctx;
+	stmdev_ctx_t dev_ctx_lsm6dsrx;
+	stmdev_ctx_t dev_ctx_lis2mdl;
 	int16_t data_raw[3];
 	float val_st_off[3];
 	float val_st_on[3];
@@ -180,124 +197,9 @@ int main(void) {
 	uint8_t st_result;
 	uint8_t whoamI;
 	uint8_t drdy;
-	uint8_t rst;
+	uint8_t rst = 255;
 	uint8_t i;
 	uint8_t j;
-	/* Wait sensor boot time */
-	HAL_Delay(BOOT_TIME);
-	/* Initialize mems driver interface */
-	dev_ctx.write_reg = platform_write;
-	dev_ctx.read_reg = platform_read;
-	dev_ctx.handle = &hspi1;
-
-	/* Check device ID */
-	lis2mdl_device_id_get(&dev_ctx, &whoamI);
-
-	if (whoamI != LIS2MDL_ID)
-		for (;;)
-			;
-	/* Restore default configuration */
-	lis2mdl_reset_set(&dev_ctx, PROPERTY_ENABLE);
-
-	do {
-		lis2mdl_reset_get(&dev_ctx, &rst);
-	} while (rst);
-	/* Enable Block Data Update */
-	lis2mdl_block_data_update_set(&dev_ctx, PROPERTY_ENABLE);
-	/* Temperature compensation enable */
-	lis2mdl_offset_temp_comp_set(&dev_ctx, PROPERTY_ENABLE);
-	/* Set restore magnetic condition policy */
-	lis2mdl_set_rst_mode_set(&dev_ctx, LIS2MDL_SET_SENS_ODR_DIV_63);
-	/* Set power mode */
-	lis2mdl_power_mode_set(&dev_ctx, LIS2MDL_HIGH_RESOLUTION);
-	/* Set Output Data Rate */
-	lis2mdl_data_rate_set(&dev_ctx, LIS2MDL_ODR_100Hz);
-	/* Set Operating mode */
-	lis2mdl_operating_mode_set(&dev_ctx, LIS2MDL_CONTINUOUS_MODE);
-	/* Wait stable output */
-	HAL_Delay(BOOT_TIME);
-	/* Check if new value available */
-	do {
-		lis2mdl_mag_data_ready_get(&dev_ctx, &drdy);
-	} while (!drdy);
-
-	/* Read dummy data and discard it */
-	lis2mdl_magnetic_raw_get(&dev_ctx, data_raw);
-	/* Read samples and get the average vale for each axis */
-	memset(val_st_off, 0x00, 3 * sizeof(float));
-
-	for (i = 0; i < SAMPLES; i++) {
-		/* Check if new value available */
-		do {
-			lis2mdl_mag_data_ready_get(&dev_ctx, &drdy);
-		} while (!drdy);
-
-		/* Read data and accumulate the mg value */
-		lis2mdl_magnetic_raw_get(&dev_ctx, data_raw);
-
-		for (j = 0; j < 3; j++) {
-			val_st_off[j] += lis2mdl_from_lsb_to_mgauss(data_raw[j]);
-		}
-	}
-
-	/* Calculate the mg average values */
-	for (i = 0; i < 3; i++) {
-		val_st_off[i] /= SAMPLES;
-	}
-
-	/* Enable Self Test */
-	lis2mdl_self_test_set(&dev_ctx, PROPERTY_ENABLE);
-	/* Wait stable output */
-	HAL_Delay(WAIT_TIME_02);
-	/* Read samples and get the average vale for each axis */
-	memset(val_st_on, 0x00, 3 * sizeof(float));
-
-	for (i = 0; i < SAMPLES; i++) {
-		/* Check if new value available */
-		do {
-			lis2mdl_mag_data_ready_get(&dev_ctx, &drdy);
-		} while (!drdy);
-
-		/* Read data and accumulate the mg value */
-		lis2mdl_magnetic_raw_get(&dev_ctx, data_raw);
-
-		for (j = 0; j < 3; j++) {
-			val_st_on[j] += lis2mdl_from_lsb_to_mgauss(data_raw[j]);
-		}
-	}
-
-	/* Calculate the mg average values */
-	for (i = 0; i < 3; i++) {
-		val_st_on[i] /= SAMPLES;
-	}
-
-	st_result = ST_PASS;
-
-	/* Calculate the mg values for self test */
-	for (i = 0; i < 3; i++) {
-		test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
-	}
-
-	/* Check self test limit */
-	for (i = 0; i < 3; i++) {
-		if ((MIN_ST_LIMIT_mG > test_val[i])
-				|| (test_val[i] > MAX_ST_LIMIT_mG)) {
-			st_result = ST_FAIL;
-		}
-	}
-
-	/* Disable Self Test */
-	lis2mdl_self_test_set(&dev_ctx, PROPERTY_DISABLE);
-	/* Disable sensor. */
-	lis2mdl_operating_mode_set(&dev_ctx, LIS2MDL_POWER_DOWN);
-
-	if (st_result == ST_PASS) {
-		printf("Self Test - PASS\r\n");
-	} else {
-		printf("Self Test - FAIL\r\n");
-	}
-	for (;;)
-		;
 	/* USER CODE END 1 */
 
 	/* MCU Configuration--------------------------------------------------------*/
@@ -374,52 +276,395 @@ int main(void) {
 	START_CAM(&CAM_1);
 	START_CAM(&CAM_2);
 	/*----------------- Camera init ----------------------*/
-
 	if (mcp795_init(&rtc, &hspi1, RTC_MOD) == 6) {
 		printf("RTC INIT FAILED!\r\n");
-		for (;;)
-			;
+		//for (;;);
 	} else {
 		printf("RTC INIT success!\r\n");
 	}
 	if (adt7310_init(&adt7310_in, &hspi1, TEMP_IN) != 0) {
 		printf("ADT7310 TEMP_IN INIT FAILED!\r\n");
-		for (;;)
-			;
+		//for (;;);
 	} else {
 		printf("ADT7310 TEMP_IN INIT successful!\r\n");
 	}
 
 	if (adt7310_init(&adt7310_out, &hspi1, TEMP_OUT) != 0) {
 		printf("ADT7310 TEMP_OUT INIT FAILED!\r\n");
-		for (;;)
-			;
+		//for (;;);
 	} else {
 		printf("ADT7310 TEMP_OUT INIT successful!\r\n");
 	}
-
-//	printf("\n\nStarting\n\r");
-//	printf("VREFINT_CAL = %d (0x%04x)\n\r", (uint16_t) *VREFINT_CAL_ADDR,
-//			(uint16_t) *VREFINT_CAL_ADDR);
-//	printf("TEMPSENSOR_CAL1 = %d (0x%04x)\n\r",
-//			(uint16_t) *TEMPSENSOR_CAL1_ADDR, (uint16_t) *TEMPSENSOR_CAL1_ADDR);
-//	printf("TEMPSENSOR_CAL2 = %d (0x%04x)\n\r",
-//			(uint16_t) *TEMPSENSOR_CAL2_ADDR, (uint16_t) *TEMPSENSOR_CAL2_ADDR);
-
+	/* Wait sensor boot time */
+    HAL_Delay(BOOT_TIME);
+    /* Initialize mems driver interface */
+    dev_ctx_lis2mdl.write_reg = lis2mdl_write;
+    dev_ctx_lis2mdl.read_reg = lis2mdl_read;
+    dev_ctx_lis2mdl.handle = &hspi1;
+    /* SPI 3-wire to 4-wire interface */
+    select_sensor(MAG);
+    lis2mdl_spi_mode_set(&dev_ctx_lis2mdl, PROPERTY_ENABLE);
+    deselect_sensors();
+    /* Check device ID */
+    select_sensor(MAG);
+    lis2mdl_device_id_get(&dev_ctx_lis2mdl, &whoamI);
+    deselect_sensors();
+    if (whoamI != LIS2MDL_ID)
+        printf("LIS2MDL MAG INIT un-successful!\r\n");
+    else
+        printf("LIS2MDL MAG INIT successful!\r\n");
+// TODO BEFORE USING MAG - HAVE TO PREFORM HARD-IRON CALIBRATION
+//    lis2mdl_reset_get(&dev_ctx, &rst);
+//    /* Restore default configuration */
+//
+//    lis2mdl_reset_set(&dev_ctx, PROPERTY_ENABLE);
+//
+//    do {
+//        /* SPI 3-wire to 4-wire interface */
+//        lis2mdl_spi_mode_set(&dev_ctx, PROPERTY_ENABLE);
+//        lis2mdl_reset_get(&dev_ctx, &rst);
+//    } while (rst);
+//    while(1){
+//        lis2mdl_boot_set(&dev_ctx, PROPERTY_ENABLE);
+//
+//        HAL_Delay(20);
+//        do {
+//            lis2mdl_boot_get(&dev_ctx, &rst);
+//       } while (rst);
+//        /* Enable Block Data Update */
+//        lis2mdl_block_data_update_set(&dev_ctx, PROPERTY_ENABLE);
+//        /* Temperature compensation enable */
+//        lis2mdl_offset_temp_comp_set(&dev_ctx, PROPERTY_ENABLE);
+//        /* Set restore magnetic condition policy */
+//        lis2mdl_set_rst_mode_set(&dev_ctx, LIS2MDL_SET_SENS_ODR_DIV_63);
+//        /* Set power mode */
+//        lis2mdl_power_mode_set(&dev_ctx, LIS2MDL_HIGH_RESOLUTION);
+//        /* Set Output Data Rate */
+//        lis2mdl_data_rate_set(&dev_ctx, LIS2MDL_ODR_100Hz);
+//        /* Set Operating mode */
+//        lis2mdl_operating_mode_set(&dev_ctx, LIS2MDL_CONTINUOUS_MODE);
+//        /* Wait stable output */
+//        HAL_Delay(BOOT_TIME);
+//
+//        /* Check if new value available */
+//        do {
+//            lis2mdl_mag_data_ready_get(&dev_ctx, &drdy);
+//        } while (!drdy);
+//
+//        /* Read dummy data and discard it */
+//        lis2mdl_magnetic_raw_get(&dev_ctx, data_raw);
+//        /* Read samples and get the average value for each axis */
+//        memset(val_st_off, 0x00, 3 * sizeof(float));
+//
+//        for (i = 0; i < SAMPLES; i++) {
+//            /* Check if new value available */
+//            do {
+//                lis2mdl_mag_data_ready_get(&dev_ctx, &drdy);
+//            } while (!drdy);
+//
+//            /* Read data and accumulate the mg value */
+//            lis2mdl_magnetic_raw_get(&dev_ctx, data_raw);
+//            for (j = 0; j < 3; j++) {
+//                val_st_off[j] += lis2mdl_from_lsb_to_mgauss(data_raw[j]);
+//            }
+//        }
+//
+//        /* Calculate the mg average values */
+//        for (i = 0; i < 3; i++) {
+//            val_st_off[i] /= SAMPLES;
+//        }
+//
+//        /* Enable Self Test */
+//        lis2mdl_self_test_set(&dev_ctx, PROPERTY_ENABLE);
+//        /* Wait stable output */
+//        HAL_Delay(WAIT_TIME_02);
+//        /* Read dummy data and discard it */
+//        lis2mdl_magnetic_raw_get(&dev_ctx, data_raw);
+//        /* Read samples and get the average value for each axis */
+//        memset(val_st_on, 0x00, 3 * sizeof(float));
+//
+//        for (i = 0; i < SAMPLES; i++) {
+//            /* Check if new value available */
+//            do {
+//                lis2mdl_mag_data_ready_get(&dev_ctx, &drdy);
+//            } while (!drdy);
+//
+//            /* Read data and accumulate the mg value */
+//            for(;;){
+//                lis2mdl_magnetic_raw_get(&dev_ctx, data_raw);
+//                HAL_Delay(50);
+//            }
+//            //lis2mdl_magnetic_raw_get(&dev_ctx, data_raw);
+//
+//            for (j = 0; j < 3; j++) {
+//                val_st_on[j] += lis2mdl_from_lsb_to_mgauss(data_raw[j]);
+//            }
+//        }
+//
+//        /* Calculate the mg average values */
+//        for (i = 0; i < 3; i++) {
+//            val_st_on[i] /= SAMPLES;
+//        }
+//
+//        st_result = ST_PASS;
+//
+//        /* Calculate the mg values for self test */
+//        for (i = 0; i < 3; i++) {
+//            test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
+//        }
+//
+//        /* Check self test limit */
+//        for (i = 0; i < 3; i++) {
+//            if ((MIN_ST_LIMIT_mG > test_val[i])
+//                    || (test_val[i] > MAX_ST_LIMIT_mG)) {
+//                st_result = ST_FAIL;
+//            }
+//        }
+//        /* Disable Self Test */
+//        lis2mdl_self_test_set(&dev_ctx, PROPERTY_DISABLE);
+//        /* Disable sensor. */
+//        lis2mdl_operating_mode_set(&dev_ctx, LIS2MDL_POWER_DOWN);
+//
+//        if (st_result == ST_PASS) {
+//            printf("Self Test - PASS\r\n");
+//            break;
+//        } else {
+//            printf("Self Test - FAIL\r\n");
+//        }
+//    }
+    /* Initialize mems driver interface */
+    dev_ctx_lsm6dsrx.write_reg = lsm6dsrx_write;
+    dev_ctx_lsm6dsrx.read_reg = lsm6dsrx_read;
+    dev_ctx_lsm6dsrx.handle = &hspi1;
+    /* Wait sensor boot time */
+    HAL_Delay(BOOT_TIME_LSM6DRX);
+    /* Check device ID */
+//      hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
+//      hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
+//      if (HAL_SPI_Init(&hspi1) != HAL_OK) {
+//          return HAL_ERROR;
+//      }
+//
+//     // dummy byter
+    uint8_t command[2] = { 0 };
+//    HAL_SPI_TransmitReceive(&hspi1, command, command, 2, 100);
+    lsm6dsrx_device_id_get(&dev_ctx_lsm6dsrx, &whoamI);
+    if (whoamI != LSM6DSRX_ID)
+        printf("LSM6DSRX MAG INIT un-successful!\r\n");
+    else
+        printf("LSM6DSRX MAG INIT successful!\r\n");
+//
+//    /* Restore default configuration */
+//    lsm6dsrx_reset_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
+//
+//    do {
+//      lsm6dsrx_reset_get(&dev_ctx_lsm6dsrx, &rst);
+//    } while (rst);
+//
+//    /* Disable I3C interface */
+//    lsm6dsrx_i3c_disable_set(&dev_ctx_lsm6dsrx, LSM6DSRX_I3C_DISABLE);
+//    /* Enable Block Data Update */
+//    lsm6dsrx_block_data_update_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
+//    /* Accelerometer Self Test */
+//    /* Set Output Data Rate */
+//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_52Hz);
+//    /* Set full scale */
+//    lsm6dsrx_xl_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_4g);
+//    /* Wait stable output */
+//    HAL_Delay(100);
+//
+//    /* Check if new value available */
+//    do {
+//      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//    } while (!drdy);
+//
+//    /* Read dummy data and discard it */
+//    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//    /* Read 5 sample and get the average vale for each axis */
+//    memset(val_st_off, 0x00, 3 * sizeof(float));
+//
+//    for (i = 0; i < 5; i++) {
+//      /* Check if new value available */
+//      do {
+//        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//      } while (!drdy);
+//
+//      /* Read data and accumulate the mg value */
+//      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//
+//      for (j = 0; j < 3; j++) {
+//        val_st_off[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
+//      }
+//    }
+//
+//    /* Calculate the mg average values */
+//    for (i = 0; i < 3; i++) {
+//      val_st_off[i] /= 5.0f;
+//    }
+//
+//    /* Enable Self Test positive (or negative) */
+//    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_POSITIVE);
+//    //lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_XL_ST_NEGATIVE);
+//    /* Wait stable output */
+//    HAL_Delay(100);
+//
+//    /* Check if new value available */
+//    do {
+//      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//    } while (!drdy);
+//
+//    /* Read dummy data and discard it */
+//    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//    /* Read 5 sample and get the average vale for each axis */
+//    memset(val_st_on, 0x00, 3 * sizeof(float));
+//
+//    for (i = 0; i < 5; i++) {
+//      /* Check if new value available */
+//      do {
+//        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//      } while (!drdy);
+//
+//      /* Read data and accumulate the mg value */
+//      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//
+//      for (j = 0; j < 3; j++) {
+//        val_st_on[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
+//      }
+//    }
+//
+//    /* Calculate the mg average values */
+//    for (i = 0; i < 3; i++) {
+//      val_st_on[i] /= 5.0f;
+//    }
+//
+//    /* Calculate the mg values for self test */
+//    for (i = 0; i < 3; i++) {
+//      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
+//    }
+//
+//    /* Check self test limit */
+//    st_result = ST_PASS;
+//
+//    for (i = 0; i < 3; i++) {
+//      if (( MIN_ST_LIMIT_mg > test_val[i] ) ||
+//          ( test_val[i] > MAX_ST_LIMIT_mg)) {
+//        st_result = ST_FAIL;
+//      }
+//    }
+//
+//    /* Disable Self Test */
+//    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_DISABLE);
+//    /* Disable sensor. */
+//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_OFF);
+//    /* Gyroscope Self Test */
+//    /* Set Output Data Rate */
+//    lsm6dsrx_gy_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_208Hz);
+//    /* Set full scale */
+//    lsm6dsrx_gy_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_2000dps);
+//    /* Wait stable output */
+//    HAL_Delay(100);
+//
+//    /* Check if new value available */
+//    do {
+//      lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//    } while (!drdy);
+//
+//    /* Read dummy data and discard it */
+//    lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//    /* Read 5 sample and get the average vale for each axis */
+//    memset(val_st_off, 0x00, 3 * sizeof(float));
+//
+//    for (i = 0; i < 5; i++) {
+//      /* Check if new value available */
+//      do {
+//        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//      } while (!drdy);
+//
+//      /* Read data and accumulate the mg value */
+//      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//
+//      for (j = 0; j < 3; j++) {
+//        val_st_off[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
+//      }
+//    }
+//
+//    /* Calculate the mg average values */
+//    for (i = 0; i < 3; i++) {
+//      val_st_off[i] /= 5.0f;
+//    }
+//
+//    /* Enable Self Test positive (or negative) */
+//    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_POSITIVE);
+//    //lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_GY_ST_NEGATIVE);
+//    /* Wait stable output */
+//    HAL_Delay(100);
+//    /* Read 5 sample and get the average vale for each axis */
+//    memset(val_st_on, 0x00, 3 * sizeof(float));
+//
+//    for (i = 0; i < 5; i++) {
+//      /* Check if new value available */
+//      do {
+//        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//      } while (!drdy);
+//
+//      /* Read data and accumulate the mg value */
+//      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//
+//      for (j = 0; j < 3; j++) {
+//        val_st_on[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
+//      }
+//    }
+//
+//    /* Calculate the mg average values */
+//    for (i = 0; i < 3; i++) {
+//      val_st_on[i] /= 5.0f;
+//    }
+//
+//    /* Calculate the mg values for self test */
+//    for (i = 0; i < 3; i++) {
+//      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
+//    }
+//
+//    /* Check self test limit */
+//    for (i = 0; i < 3; i++) {
+//      if (( MIN_ST_LIMIT_mdps > test_val[i] ) ||
+//          ( test_val[i] > MAX_ST_LIMIT_mdps)) {
+//        st_result = ST_FAIL;
+//      }
+//    }
+//
+//    /* Disable Self Test */
+//    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_DISABLE);
+//    /* Disable sensor. */
+//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_OFF);
+//
+//    if (st_result == ST_PASS) {
+//      printf("Self Test - PASS\r\n");
+//    }
+//
+//    else {
+//      printf("Self Test - FAIL\r\n");
+//    }
+//      hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+//      hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+//      if (HAL_SPI_Init(&hspi1) != HAL_OK) {
+//          return HAL_ERROR;
+//      }
+      //HAL_SPI_TransmitReceive(&hspi1, command, command, 2, 100);
 	// Calculate transfer function values - a and b in simple linear equation y = ax + b
 	calculate_calibration(&ta, &tb);
 	printf("Temp calibration: t = %0.3f * tmeasured + %0.3f\r\n", ta, tb);
 
+	rtc.rtc_time.milliseconds = 00;
+    rtc.rtc_time.seconds = 00;
+    rtc.rtc_time.minutes = 15;
+    rtc.rtc_time.hours = 22;
+    rtc.rtc_time.days = 7;
+    rtc.rtc_time.date = 04;
+    rtc.rtc_time.month = 06;
+    rtc.rtc_time.year = 23;
+    mcp795_set_time(&rtc);
 	mcp795_start_counting(&rtc);
-// rtc_time.milliseconds = 00;
-// rtc_time.seconds = 00;
-// rtc_time.minutes = 00;
-// rtc_time.hours = 15;
-// rtc_time.days = 7;
-// rtc_time.date = 18;
-// rtc_time.month = 12;
-// rtc_time.year = 22;
-// mcp795_set_time(&rtc, &rtc_time);
 
 	HAL_TIM_Base_Start_IT(&htim7); // First get the timer running
 	HAL_TIM_Base_Start_IT(&htim14); // First get the timer running
@@ -428,7 +673,6 @@ int main(void) {
 	HAL_TIM_Base_Start_IT(&htim17); // First get the timer running
 
 	HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adc_buffer, ADC_SAMPLES * 2 * 5); // Now fire up the ADC DMA
-	uint8_t command[2] = { 0 };
 	uint8_t received[2] = { 0 };
 	command[0] = 0x80 | 0x0F;
 	uint8_t config = 0;
@@ -442,46 +686,6 @@ int main(void) {
 	adt7310_set_config(&adt7310_out,
 	ADT7310_CONF_RESOLUTION(1) | ADT7310_MODE_1SPS);
 	adt7310_read_reg(&adt7310_out, 1, 1, &config);
-
-	//MAG test
-
-//	hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
-//	hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
-//	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-//		return HAL_ERROR;
-//	}
-//
-//	// dummy byter
-//	HAL_SPI_TransmitReceive(&hspi1, command, received, 2, 100);
-//
-//	command[0] = 0x62;
-//	//command[0] = 0x62 << 1 | 0x00;
-//	command[1] = 0x04;
-//	select_sensor(MAG);
-//	/* Perform the transaction */
-//	HAL_SPI_TransmitReceive(&hspi1, command, received, 2, 100);
-//	deselect_sensors();
-//	HAL_Delay(100);
-//	command[0] = 0x80 | 0x4F;
-//	//command[0] = 0x4F << 1 | 0x01;
-//	command[1] = 0x00;
-//	select_sensor(MAG);
-//	/* Perform the transaction */
-//	HAL_SPI_TransmitReceive(&hspi1, command, received, 2, 100);
-//	deselect_sensors();
-////command[0] = 0x60 << 1 | 0x01;
-//	command[0] = 0x80 | 0x60;
-//	command[1] = 0x00;
-//	select_sensor(MAG);
-//	/* Perform the transaction */
-//	HAL_SPI_TransmitReceive(&hspi1, command, received, 2, 100);
-//	deselect_sensors();
-//
-//	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-//	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-//	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-//		return HAL_ERROR;
-//	}
 
 	bme680_init(&bme680);
 	/* Set the temperature, pressure and humidity settings */
@@ -544,17 +748,17 @@ int main(void) {
 
 			if (now - then >= 2000) {
 				mcp795_read_time(&rtc);
-				if ((rtc.rtc_time->seconds == 30)
-						|| (rtc.rtc_time->seconds == 0))
+				if ((rtc.rtc_time.seconds == 30)
+						|| (rtc.rtc_time.seconds == 0))
 					buzz_on = 1;
 				else
 					buzz_on = 0;
 				printf(
 						"Year: 20%02u\r\nMonth: %s\r\nDate: %u\r\nDay: %s\r\nTime: %02u:%02u:%02u:%02u\r\n",
-						rtc.rtc_time->year, month(rtc.rtc_time->month),
-						rtc.rtc_time->date, day_of_the_week(rtc.rtc_time->days),
-						rtc.rtc_time->hours, rtc.rtc_time->minutes,
-						rtc.rtc_time->seconds, rtc.rtc_time->milliseconds);
+						rtc.rtc_time.year, month(rtc.rtc_time.month),
+						rtc.rtc_time.date, day_of_the_week(rtc.rtc_time.days),
+						rtc.rtc_time.hours, rtc.rtc_time.minutes,
+						rtc.rtc_time.seconds, rtc.rtc_time.milliseconds);
 				printf(
 						"VDDA = %5.3f V Vref = %5.3f V (raw = %d) Temp = %4.2f °C (raw = %d)\r\n",
 						vdda, vref, vref_avg, temp, temp_avg);
@@ -1603,29 +1807,48 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 	}
 }
 
-static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
+static int32_t lsm6dsrx_write(void *handle, uint8_t reg, const uint8_t *bufp,
 		uint16_t len) {
-	hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
-	hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
-	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-		return HAL_ERROR;
-	}
 	/* Write multiple command */
-	reg |= 0x40;
-	select_sensor(MAG);
-	HAL_SPI_Transmit(handle, &reg, 1, 1000);
-	HAL_SPI_Transmit(handle, (uint8_t*) bufp, len, 1000);
+    int status = 0;
+	select_sensor(IMU);
+	status = spi_write(handle, reg, bufp, len);
 	deselect_sensors();
-	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-		return HAL_ERROR;
-	}
-	return 0;
+	return status;
+}
+
+static int32_t lsm6dsrx_read(void *handle, uint8_t reg, uint8_t *bufp,
+		uint16_t len) {
+	/* Read multiple command */
+    int status = 0;
+    select_sensor(IMU);
+    status = spi_read(handle, reg, bufp, len);
+    deselect_sensors();
+	return status;
+}
+
+static int32_t lis2mdl_write(void *handle, uint8_t reg, const uint8_t *bufp,
+        uint16_t len) {
+    /* Write multiple command */
+    int status = 0;
+    select_sensor(MAG);
+    status = spi_write(handle, reg, bufp, len);
+    deselect_sensors();
+    return status;
+}
+
+static int32_t lis2mdl_read(void *handle, uint8_t reg, uint8_t *bufp,
+        uint16_t len) {
+    /* Read multiple command */
+    int status = 0;
+    select_sensor(MAG);
+    status = spi_read(handle, reg, bufp, len);
+    deselect_sensors();
+    return status;
 }
 
 /*
- * @brief  Read generic device register (platform dependent)
+ * @brief  Write generic device register (spi dependent)
  *
  * @param  handle    customizable argument. In this examples is used in
  *                   order to select the correct sensor bus handler.
@@ -1634,25 +1857,47 @@ static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp,
  * @param  len       number of consecutive register to read
  *
  */
-static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp,
-		uint16_t len) {
-	hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
-	hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
-	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-		return HAL_ERROR;
-	}
-	/* Read multiple command */
-	reg |= 0xC0;
-	select_sensor(MAG);
-	HAL_SPI_Transmit(handle, &reg, 1, 1000);
-	HAL_SPI_Receive(handle, bufp, len, 1000);
-	deselect_sensors();
-	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-		return HAL_ERROR;
-	}
-	return 0;
+static int32_t spi_write(void *handle, uint8_t reg, const uint8_t *bufp,
+        uint16_t len) {
+    int status = HAL_OK;
+    reg |= 0x40;
+    select_sensor(IMU);
+    status = HAL_SPI_Transmit(handle, &reg, 1, 1000);
+    if(status != HAL_OK){
+        return status;
+    }
+    status = HAL_SPI_Transmit(handle, (uint8_t*) bufp, len, 1000);
+    if(status != HAL_OK){
+        return status;
+    }
+    return status;
+}
+
+/*
+ * @brief  Read generic device register (spi dependent)
+ *
+ * @param  handle    customizable argument. In this examples is used in
+ *                   order to select the correct sensor bus handler.
+ * @param  reg       register to read
+ * @param  bufp      pointer to buffer that store the data read
+ * @param  len       number of consecutive register to read
+ *
+ */
+static int32_t spi_read(void *handle, uint8_t reg, uint8_t *bufp,
+        uint16_t len){
+    int status = HAL_OK;
+    reg |= 0xC0;
+    status = HAL_SPI_Transmit(handle, &reg, 1, 1000);
+    if(status != HAL_OK){
+        deselect_sensors();
+        return status;
+    }
+    status = HAL_SPI_Receive(handle, bufp, len, 1000);
+    if(status != HAL_OK){
+        deselect_sensors();
+        return status;
+    }
+    return status;
 }
 
 /* USER CODE END 4 */
