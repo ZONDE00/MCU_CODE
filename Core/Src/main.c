@@ -450,219 +450,221 @@ int main(void) {
 //    HAL_SPI_TransmitReceive(&hspi1, command, command, 2, 100);
     lsm6dsrx_device_id_get(&dev_ctx_lsm6dsrx, &whoamI);
     if (whoamI != LSM6DSRX_ID)
-      for(;;);
-
-    /* Restore default configuration */
-    lsm6dsrx_reset_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
-
-    do {
-      lsm6dsrx_reset_get(&dev_ctx_lsm6dsrx, &rst);
-    } while (rst);
-
-    /* Disable I3C interface */
-    lsm6dsrx_i3c_disable_set(&dev_ctx_lsm6dsrx, LSM6DSRX_I3C_DISABLE);
-    /* Enable Block Data Update */
-    lsm6dsrx_block_data_update_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
-    /* Accelerometer Self Test */
-    /* Set Output Data Rate */
-    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_52Hz);
-    /* Set full scale */
-    lsm6dsrx_xl_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_4g);
-    /* Wait stable output */
-    HAL_Delay(100);
-
-    /* Check if new value available */
-    do {
-      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-    } while (!drdy);
-
-    /* Read dummy data and discard it */
-    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-    /* Read 5 sample and get the average vale for each axis */
-    memset(val_st_off, 0x00, 3 * sizeof(float));
-
-    for (i = 0; i < 5; i++) {
-      /* Check if new value available */
-      do {
-        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-      } while (!drdy);
-
-      /* Read data and accumulate the mg value */
-      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-
-      for (j = 0; j < 3; j++) {
-        val_st_off[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
-      }
-    }
-
-    /* Calculate the mg average values */
-    for (i = 0; i < 3; i++) {
-      val_st_off[i] /= 5.0f;
-    }
-
-    /* Enable Self Test positive (or negative) */
-    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_POSITIVE);
-    //lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_XL_ST_NEGATIVE);
-    /* Wait stable output */
-    HAL_Delay(100);
-
-    /* Check if new value available */
-    do {
-      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-    } while (!drdy);
-
-    /* Read dummy data and discard it */
-    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-    /* Read 5 sample and get the average vale for each axis */
-    memset(val_st_on, 0x00, 3 * sizeof(float));
-
-    for (i = 0; i < 5; i++) {
-      /* Check if new value available */
-      do {
-        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-      } while (!drdy);
-
-      /* Read data and accumulate the mg value */
-      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-
-      for (j = 0; j < 3; j++) {
-        val_st_on[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
-      }
-    }
-
-    /* Calculate the mg average values */
-    for (i = 0; i < 3; i++) {
-      val_st_on[i] /= 5.0f;
-    }
-
-    /* Calculate the mg values for self test */
-    for (i = 0; i < 3; i++) {
-      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
-    }
-
-    /* Check self test limit */
-    st_result = ST_PASS;
-
-    for (i = 0; i < 3; i++) {
-      if (( MIN_ST_LIMIT_mg > test_val[i] ) ||
-          ( test_val[i] > MAX_ST_LIMIT_mg)) {
-        st_result = ST_FAIL;
-      }
-    }
-
-    /* Disable Self Test */
-    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_DISABLE);
-    /* Disable sensor. */
-    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_OFF);
-    /* Gyroscope Self Test */
-    /* Set Output Data Rate */
-    lsm6dsrx_gy_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_208Hz);
-    /* Set full scale */
-    lsm6dsrx_gy_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_2000dps);
-    /* Wait stable output */
-    HAL_Delay(100);
-
-    /* Check if new value available */
-    do {
-      lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-    } while (!drdy);
-
-    /* Read dummy data and discard it */
-    lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-    /* Read 5 sample and get the average vale for each axis */
-    memset(val_st_off, 0x00, 3 * sizeof(float));
-
-    for (i = 0; i < 5; i++) {
-      /* Check if new value available */
-      do {
-        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-      } while (!drdy);
-
-      /* Read data and accumulate the mg value */
-      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-
-      for (j = 0; j < 3; j++) {
-        val_st_off[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
-      }
-    }
-
-    /* Calculate the mg average values */
-    for (i = 0; i < 3; i++) {
-      val_st_off[i] /= 5.0f;
-    }
-
-    /* Enable Self Test positive (or negative) */
-    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_POSITIVE);
-    //lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_GY_ST_NEGATIVE);
-    /* Wait stable output */
-    HAL_Delay(100);
-    /* Read 5 sample and get the average vale for each axis */
-    memset(val_st_on, 0x00, 3 * sizeof(float));
-
-    for (i = 0; i < 5; i++) {
-      /* Check if new value available */
-      do {
-        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-      } while (!drdy);
-
-      /* Read data and accumulate the mg value */
-      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-
-      for (j = 0; j < 3; j++) {
-        val_st_on[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
-      }
-    }
-
-    /* Calculate the mg average values */
-    for (i = 0; i < 3; i++) {
-      val_st_on[i] /= 5.0f;
-    }
-
-    /* Calculate the mg values for self test */
-    for (i = 0; i < 3; i++) {
-      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
-    }
-
-    /* Check self test limit */
-    for (i = 0; i < 3; i++) {
-      if (( MIN_ST_LIMIT_mdps > test_val[i] ) ||
-          ( test_val[i] > MAX_ST_LIMIT_mdps)) {
-        st_result = ST_FAIL;
-      }
-    }
-
-    /* Disable Self Test */
-    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_DISABLE);
-    /* Disable sensor. */
-    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_OFF);
-
-    if (st_result == ST_PASS) {
-      printf("Self Test - PASS\r\n");
-    }
-
-    else {
-      printf("Self Test - FAIL\r\n");
-    }
-      hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-      hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-      if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-          return HAL_ERROR;
-      }
+        printf("LSM6DSRX MAG INIT un-successful!\r\n");
+    else
+        printf("LSM6DSRX MAG INIT successful!\r\n");
+//
+//    /* Restore default configuration */
+//    lsm6dsrx_reset_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
+//
+//    do {
+//      lsm6dsrx_reset_get(&dev_ctx_lsm6dsrx, &rst);
+//    } while (rst);
+//
+//    /* Disable I3C interface */
+//    lsm6dsrx_i3c_disable_set(&dev_ctx_lsm6dsrx, LSM6DSRX_I3C_DISABLE);
+//    /* Enable Block Data Update */
+//    lsm6dsrx_block_data_update_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
+//    /* Accelerometer Self Test */
+//    /* Set Output Data Rate */
+//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_52Hz);
+//    /* Set full scale */
+//    lsm6dsrx_xl_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_4g);
+//    /* Wait stable output */
+//    HAL_Delay(100);
+//
+//    /* Check if new value available */
+//    do {
+//      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//    } while (!drdy);
+//
+//    /* Read dummy data and discard it */
+//    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//    /* Read 5 sample and get the average vale for each axis */
+//    memset(val_st_off, 0x00, 3 * sizeof(float));
+//
+//    for (i = 0; i < 5; i++) {
+//      /* Check if new value available */
+//      do {
+//        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//      } while (!drdy);
+//
+//      /* Read data and accumulate the mg value */
+//      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//
+//      for (j = 0; j < 3; j++) {
+//        val_st_off[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
+//      }
+//    }
+//
+//    /* Calculate the mg average values */
+//    for (i = 0; i < 3; i++) {
+//      val_st_off[i] /= 5.0f;
+//    }
+//
+//    /* Enable Self Test positive (or negative) */
+//    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_POSITIVE);
+//    //lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_XL_ST_NEGATIVE);
+//    /* Wait stable output */
+//    HAL_Delay(100);
+//
+//    /* Check if new value available */
+//    do {
+//      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//    } while (!drdy);
+//
+//    /* Read dummy data and discard it */
+//    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//    /* Read 5 sample and get the average vale for each axis */
+//    memset(val_st_on, 0x00, 3 * sizeof(float));
+//
+//    for (i = 0; i < 5; i++) {
+//      /* Check if new value available */
+//      do {
+//        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//      } while (!drdy);
+//
+//      /* Read data and accumulate the mg value */
+//      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//
+//      for (j = 0; j < 3; j++) {
+//        val_st_on[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
+//      }
+//    }
+//
+//    /* Calculate the mg average values */
+//    for (i = 0; i < 3; i++) {
+//      val_st_on[i] /= 5.0f;
+//    }
+//
+//    /* Calculate the mg values for self test */
+//    for (i = 0; i < 3; i++) {
+//      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
+//    }
+//
+//    /* Check self test limit */
+//    st_result = ST_PASS;
+//
+//    for (i = 0; i < 3; i++) {
+//      if (( MIN_ST_LIMIT_mg > test_val[i] ) ||
+//          ( test_val[i] > MAX_ST_LIMIT_mg)) {
+//        st_result = ST_FAIL;
+//      }
+//    }
+//
+//    /* Disable Self Test */
+//    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_DISABLE);
+//    /* Disable sensor. */
+//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_OFF);
+//    /* Gyroscope Self Test */
+//    /* Set Output Data Rate */
+//    lsm6dsrx_gy_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_208Hz);
+//    /* Set full scale */
+//    lsm6dsrx_gy_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_2000dps);
+//    /* Wait stable output */
+//    HAL_Delay(100);
+//
+//    /* Check if new value available */
+//    do {
+//      lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//    } while (!drdy);
+//
+//    /* Read dummy data and discard it */
+//    lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//    /* Read 5 sample and get the average vale for each axis */
+//    memset(val_st_off, 0x00, 3 * sizeof(float));
+//
+//    for (i = 0; i < 5; i++) {
+//      /* Check if new value available */
+//      do {
+//        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//      } while (!drdy);
+//
+//      /* Read data and accumulate the mg value */
+//      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//
+//      for (j = 0; j < 3; j++) {
+//        val_st_off[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
+//      }
+//    }
+//
+//    /* Calculate the mg average values */
+//    for (i = 0; i < 3; i++) {
+//      val_st_off[i] /= 5.0f;
+//    }
+//
+//    /* Enable Self Test positive (or negative) */
+//    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_POSITIVE);
+//    //lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_GY_ST_NEGATIVE);
+//    /* Wait stable output */
+//    HAL_Delay(100);
+//    /* Read 5 sample and get the average vale for each axis */
+//    memset(val_st_on, 0x00, 3 * sizeof(float));
+//
+//    for (i = 0; i < 5; i++) {
+//      /* Check if new value available */
+//      do {
+//        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+//      } while (!drdy);
+//
+//      /* Read data and accumulate the mg value */
+//      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+//
+//      for (j = 0; j < 3; j++) {
+//        val_st_on[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
+//      }
+//    }
+//
+//    /* Calculate the mg average values */
+//    for (i = 0; i < 3; i++) {
+//      val_st_on[i] /= 5.0f;
+//    }
+//
+//    /* Calculate the mg values for self test */
+//    for (i = 0; i < 3; i++) {
+//      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
+//    }
+//
+//    /* Check self test limit */
+//    for (i = 0; i < 3; i++) {
+//      if (( MIN_ST_LIMIT_mdps > test_val[i] ) ||
+//          ( test_val[i] > MAX_ST_LIMIT_mdps)) {
+//        st_result = ST_FAIL;
+//      }
+//    }
+//
+//    /* Disable Self Test */
+//    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_DISABLE);
+//    /* Disable sensor. */
+//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_OFF);
+//
+//    if (st_result == ST_PASS) {
+//      printf("Self Test - PASS\r\n");
+//    }
+//
+//    else {
+//      printf("Self Test - FAIL\r\n");
+//    }
+//      hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+//      hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+//      if (HAL_SPI_Init(&hspi1) != HAL_OK) {
+//          return HAL_ERROR;
+//      }
       //HAL_SPI_TransmitReceive(&hspi1, command, command, 2, 100);
 	// Calculate transfer function values - a and b in simple linear equation y = ax + b
 	calculate_calibration(&ta, &tb);
 	printf("Temp calibration: t = %0.3f * tmeasured + %0.3f\r\n", ta, tb);
 
+	rtc.rtc_time.milliseconds = 00;
+    rtc.rtc_time.seconds = 00;
+    rtc.rtc_time.minutes = 15;
+    rtc.rtc_time.hours = 22;
+    rtc.rtc_time.days = 7;
+    rtc.rtc_time.date = 04;
+    rtc.rtc_time.month = 06;
+    rtc.rtc_time.year = 23;
+    mcp795_set_time(&rtc);
 	mcp795_start_counting(&rtc);
-// rtc_time.milliseconds = 00;
-// rtc_time.seconds = 00;
-// rtc_time.minutes = 00;
-// rtc_time.hours = 15;
-// rtc_time.days = 7;
-// rtc_time.date = 18;
-// rtc_time.month = 12;
-// rtc_time.year = 22;
-// mcp795_set_time(&rtc, &rtc_time);
 
 	HAL_TIM_Base_Start_IT(&htim7); // First get the timer running
 	HAL_TIM_Base_Start_IT(&htim14); // First get the timer running
@@ -746,17 +748,17 @@ int main(void) {
 
 			if (now - then >= 2000) {
 				mcp795_read_time(&rtc);
-				if ((rtc.rtc_time->seconds == 30)
-						|| (rtc.rtc_time->seconds == 0))
+				if ((rtc.rtc_time.seconds == 30)
+						|| (rtc.rtc_time.seconds == 0))
 					buzz_on = 1;
 				else
 					buzz_on = 0;
 				printf(
 						"Year: 20%02u\r\nMonth: %s\r\nDate: %u\r\nDay: %s\r\nTime: %02u:%02u:%02u:%02u\r\n",
-						rtc.rtc_time->year, month(rtc.rtc_time->month),
-						rtc.rtc_time->date, day_of_the_week(rtc.rtc_time->days),
-						rtc.rtc_time->hours, rtc.rtc_time->minutes,
-						rtc.rtc_time->seconds, rtc.rtc_time->milliseconds);
+						rtc.rtc_time.year, month(rtc.rtc_time.month),
+						rtc.rtc_time.date, day_of_the_week(rtc.rtc_time.days),
+						rtc.rtc_time.hours, rtc.rtc_time.minutes,
+						rtc.rtc_time.seconds, rtc.rtc_time.milliseconds);
 				printf(
 						"VDDA = %5.3f V Vref = %5.3f V (raw = %d) Temp = %4.2f °C (raw = %d)\r\n",
 						vdda, vref, vref_avg, temp, temp_avg);

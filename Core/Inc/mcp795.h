@@ -60,7 +60,7 @@ typedef struct {
 typedef struct {
 	SPI_HandleTypeDef *hspi; /**< SPI bus the sensor is connected to */
 	uint8_t sensor_cs; /**< CS ID for MUX */
-	rtc_time_t *rtc_time;
+	rtc_time_t rtc_time;
 	uint8_t rtc_status;
 	HAL_StatusTypeDef status; /**< Sensor status, true if still capable to communicate */
 } mcp795_t;
@@ -135,6 +135,7 @@ int mcp795_set_time(mcp795_t *dev);
 int mcp795_start_counting(mcp795_t *dev);
 int mcp795_write_enable(mcp795_t *dev);
 int mcp795_eeprom_write(mcp795_t *dev);
+void mcp795_decrypt_time(rtc_time_t *rtc_time, uint8_t* received);
 
 #ifdef __cplusplus
 }
