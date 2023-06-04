@@ -117,7 +117,7 @@ typedef struct {
 	stmdev_write_ptr write_reg;
 	stmdev_read_ptr read_reg;
 	/** Component optional fields **/
-	stmdev_mdelay_ptr mdelay;
+	//stmdev_mdelay_ptr mdelay;
 	/** Customizable optional pointer **/
 	void *handle;
 } stmdev_ctx_t;

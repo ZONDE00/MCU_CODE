@@ -1,15 +1,15 @@
 #include "mcp795.h"
 
 int mcp795_init(mcp795_t *dev, SPI_HandleTypeDef *hspi, uint8_t sensor_cs) {
-	uint8_t id[17] = { 0 };
+	uint8_t id[9] = { 0 };
+	char temp[9] = { 0 };
 	dev->hspi = hspi;
 	dev->sensor_cs = sensor_cs;
 	memset(&(dev->rtc_time), 0, sizeof(rtc_time_t));
 	dev->status = 0;
-	if (mcp795_read_id(dev, id, 16) != HAL_OK) {
+	if (mcp795_read_id(dev, id, 8) != HAL_OK) {
 		return HAL_TIMEOUT;
 	}
-	char temp[17] = { 0 };
 	strncpy(temp, RTC_ID, sizeof(temp) - 1);
 	temp[sizeof(temp) - 1] = '\0';
 	if (strcmp((char*) id, temp) != 0) {
@@ -63,7 +63,13 @@ int mcp795_write_id(mcp795_t *dev, uint8_t *id, uint16_t len) {
 	uint8_t command[2] = { 0 };
 	uint8_t send_id[16] = { 0 };
 	/* unclock ID area */
-	mcp795_id_unlock(dev);
+	status = mcp795_id_unlock(dev);
+    if (status != HAL_OK) {
+        /* Couldn't communicate with sensor */
+        deselect_sensors();
+        return HAL_TIMEOUT;
+    }
+    deselect_sensors();
 	command[0] = IDWRITE;
 	command[1] = 0x00;
 	for (uint8_t i = 0; i < len; i++) {
@@ -76,7 +82,7 @@ int mcp795_write_id(mcp795_t *dev, uint8_t *id, uint16_t len) {
 		deselect_sensors();
 		return HAL_TIMEOUT;
 	}
-	status = HAL_SPI_Transmit(dev->hspi, send_id, 16, 100);
+	status = HAL_SPI_Transmit(dev->hspi, send_id, len, 100);
 	if (status != HAL_OK) {
 		/* Couldn't communicate with sensor */
 		deselect_sensors();
