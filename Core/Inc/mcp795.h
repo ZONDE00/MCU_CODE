@@ -77,8 +77,7 @@ static inline const char* month(month_t month) {
 	return months[month];
 }
 
-#define RTC_ID "Kristers"
-//#define RTC_ID "Rodrigoo"
+#define RTC_ID "rbots123"
 #define UNRECOGNIZED_ID 6U
 /**
  * @name   MCP795 instruction set
