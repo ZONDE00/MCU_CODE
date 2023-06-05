@@ -103,6 +103,8 @@ void select_sensor(uint8_t sensor);
 #define S1_SENS_GPIO_Port GPIOA
 #define S2_SENS_Pin GPIO_PIN_12
 #define S2_SENS_GPIO_Port GPIOA
+#define CAM_HB_0_Pin GPIO_PIN_15
+#define CAM_HB_0_GPIO_Port GPIOA
 #define CLK_Pin GPIO_PIN_3
 #define CLK_GPIO_Port GPIOB
 #define MISO_Pin GPIO_PIN_4
@@ -113,6 +115,8 @@ void select_sensor(uint8_t sensor);
 #define DEBUX_TX_GPIO_Port GPIOB
 #define DEBUX_RX_Pin GPIO_PIN_7
 #define DEBUX_RX_GPIO_Port GPIOB
+#define CAM_HB_1_Pin GPIO_PIN_8
+#define CAM_HB_1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 #define RTC_MOD 0U

@@ -24,6 +24,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
 
 #define CRC_TEST_STRING "poopdy_doo"
 #define ADC_RESOLUTION 4095
@@ -34,10 +38,10 @@
 #define ROPE_CUTTING 1
 #define ROPE_CUT_DONE 2
 
-#define ROPE_CUT_TIME 10			// in seconds
-#define LOWER_ALTITUDE_LIMIT 1000 	// in meters
-#define UPPER_ALTITUDE_LIMIT 28000 	// in meters
-#define ALTITUDE_UPDATE_PERIOD 30	// in seconds
+#define ROPE_CUT_TIME 10            // in seconds
+#define LOWER_ALTITUDE_LIMIT 1000   // in meters
+#define UPPER_ALTITUDE_LIMIT 28000  // in meters
+#define ALTITUDE_UPDATE_PERIOD 30   // in seconds
 
 /* SD card related defines */
 #define SD_MAX_RETRIES 5
@@ -61,9 +65,6 @@
 /* Self test results. */
 #define    ST_PASS     1U
 #define    ST_FAIL     0U
-
-/* Private macro -------------------------------------------------------------*/
-/* USER CODE BEGIN PM */
 
 /* USER CODE END PM */
 
@@ -121,6 +122,12 @@ uint8_t buzz_on = 0;
 
 uint8_t whoamI = 0;
 uint8_t rst = 0;
+static int16_t data_raw_acceleration[3];
+static int16_t data_raw_angular_rate[3];
+static int16_t data_raw_temperature;
+static float angular_rate_mdps[3];
+static float acceleration_mg[3];
+static float temperature_degC;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -165,11 +172,12 @@ int __io_putchar(int ch) {
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
-int main(void) {
-	/* USER CODE BEGIN 1 */
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
 	mcp795_t rtc;
 	adt7310_t adt7310_in;
 	adt7310_t adt7310_out;
@@ -200,41 +208,41 @@ int main(void) {
 	uint8_t rst = 255;
 	uint8_t i;
 	uint8_t j;
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_DMA_Init();
-	MX_ADC1_Init();
-	MX_CRC_Init();
-	MX_SPI1_Init();
-	MX_USART1_UART_Init();
-	MX_USART4_UART_Init();
-	if (MX_FATFS_Init() != APP_OK) {
-		Error_Handler();
-	}
-	MX_TIM15_Init();
-	MX_TIM14_Init();
-	MX_TIM16_Init();
-	MX_TIM17_Init();
-	MX_TIM7_Init();
-	/* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_ADC1_Init();
+  MX_CRC_Init();
+  MX_SPI1_Init();
+  MX_USART1_UART_Init();
+  MX_USART4_UART_Init();
+  if (MX_FATFS_Init() != APP_OK) {
+    Error_Handler();
+  }
+  MX_TIM15_Init();
+  MX_TIM14_Init();
+  MX_TIM16_Init();
+  MX_TIM17_Init();
+  MX_TIM7_Init();
+  /* USER CODE BEGIN 2 */
 	/*------------------SD card setup----------------------*/
 	/* Wait for SD module reset */
 	HAL_Delay(2000);
@@ -302,13 +310,9 @@ int main(void) {
     dev_ctx_lis2mdl.read_reg = lis2mdl_read;
     dev_ctx_lis2mdl.handle = &hspi1;
     /* SPI 3-wire to 4-wire interface */
-    select_sensor(MAG);
     lis2mdl_spi_mode_set(&dev_ctx_lis2mdl, PROPERTY_ENABLE);
-    deselect_sensors();
     /* Check device ID */
-    select_sensor(MAG);
     lis2mdl_device_id_get(&dev_ctx_lis2mdl, &whoamI);
-    deselect_sensors();
     if (whoamI != LIS2MDL_ID)
         printf("LIS2MDL MAG INIT un-successful!\r\n");
     else
@@ -450,206 +454,207 @@ int main(void) {
 //    HAL_SPI_TransmitReceive(&hspi1, command, command, 2, 100);
     lsm6dsrx_device_id_get(&dev_ctx_lsm6dsrx, &whoamI);
     if (whoamI != LSM6DSRX_ID)
-        printf("LSM6DSRX MAG INIT un-successful!\r\n");
+        printf("LSM6DSRX IMU INIT un-successful!\r\n");
     else
-        printf("LSM6DSRX MAG INIT successful!\r\n");
-//
-//    /* Restore default configuration */
-//    lsm6dsrx_reset_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
-//
-//    do {
-//      lsm6dsrx_reset_get(&dev_ctx_lsm6dsrx, &rst);
-//    } while (rst);
-//
-//    /* Disable I3C interface */
-//    lsm6dsrx_i3c_disable_set(&dev_ctx_lsm6dsrx, LSM6DSRX_I3C_DISABLE);
-//    /* Enable Block Data Update */
-//    lsm6dsrx_block_data_update_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
-//    /* Accelerometer Self Test */
-//    /* Set Output Data Rate */
-//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_52Hz);
-//    /* Set full scale */
-//    lsm6dsrx_xl_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_4g);
-//    /* Wait stable output */
-//    HAL_Delay(100);
-//
-//    /* Check if new value available */
-//    do {
-//      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-//    } while (!drdy);
-//
-//    /* Read dummy data and discard it */
-//    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-//    /* Read 5 sample and get the average vale for each axis */
-//    memset(val_st_off, 0x00, 3 * sizeof(float));
-//
-//    for (i = 0; i < 5; i++) {
-//      /* Check if new value available */
-//      do {
-//        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-//      } while (!drdy);
-//
-//      /* Read data and accumulate the mg value */
-//      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-//
-//      for (j = 0; j < 3; j++) {
-//        val_st_off[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
-//      }
-//    }
-//
-//    /* Calculate the mg average values */
-//    for (i = 0; i < 3; i++) {
-//      val_st_off[i] /= 5.0f;
-//    }
-//
-//    /* Enable Self Test positive (or negative) */
-//    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_POSITIVE);
-//    //lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_XL_ST_NEGATIVE);
-//    /* Wait stable output */
-//    HAL_Delay(100);
-//
-//    /* Check if new value available */
-//    do {
-//      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-//    } while (!drdy);
-//
-//    /* Read dummy data and discard it */
-//    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-//    /* Read 5 sample and get the average vale for each axis */
-//    memset(val_st_on, 0x00, 3 * sizeof(float));
-//
-//    for (i = 0; i < 5; i++) {
-//      /* Check if new value available */
-//      do {
-//        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-//      } while (!drdy);
-//
-//      /* Read data and accumulate the mg value */
-//      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-//
-//      for (j = 0; j < 3; j++) {
-//        val_st_on[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
-//      }
-//    }
-//
-//    /* Calculate the mg average values */
-//    for (i = 0; i < 3; i++) {
-//      val_st_on[i] /= 5.0f;
-//    }
-//
-//    /* Calculate the mg values for self test */
-//    for (i = 0; i < 3; i++) {
-//      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
-//    }
-//
-//    /* Check self test limit */
-//    st_result = ST_PASS;
-//
-//    for (i = 0; i < 3; i++) {
-//      if (( MIN_ST_LIMIT_mg > test_val[i] ) ||
-//          ( test_val[i] > MAX_ST_LIMIT_mg)) {
-//        st_result = ST_FAIL;
-//      }
-//    }
-//
-//    /* Disable Self Test */
-//    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_DISABLE);
-//    /* Disable sensor. */
-//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_OFF);
-//    /* Gyroscope Self Test */
-//    /* Set Output Data Rate */
-//    lsm6dsrx_gy_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_208Hz);
-//    /* Set full scale */
-//    lsm6dsrx_gy_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_2000dps);
-//    /* Wait stable output */
-//    HAL_Delay(100);
-//
-//    /* Check if new value available */
-//    do {
-//      lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-//    } while (!drdy);
-//
-//    /* Read dummy data and discard it */
-//    lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-//    /* Read 5 sample and get the average vale for each axis */
-//    memset(val_st_off, 0x00, 3 * sizeof(float));
-//
-//    for (i = 0; i < 5; i++) {
-//      /* Check if new value available */
-//      do {
-//        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-//      } while (!drdy);
-//
-//      /* Read data and accumulate the mg value */
-//      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-//
-//      for (j = 0; j < 3; j++) {
-//        val_st_off[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
-//      }
-//    }
-//
-//    /* Calculate the mg average values */
-//    for (i = 0; i < 3; i++) {
-//      val_st_off[i] /= 5.0f;
-//    }
-//
-//    /* Enable Self Test positive (or negative) */
-//    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_POSITIVE);
-//    //lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_GY_ST_NEGATIVE);
-//    /* Wait stable output */
-//    HAL_Delay(100);
-//    /* Read 5 sample and get the average vale for each axis */
-//    memset(val_st_on, 0x00, 3 * sizeof(float));
-//
-//    for (i = 0; i < 5; i++) {
-//      /* Check if new value available */
-//      do {
-//        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
-//      } while (!drdy);
-//
-//      /* Read data and accumulate the mg value */
-//      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
-//
-//      for (j = 0; j < 3; j++) {
-//        val_st_on[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
-//      }
-//    }
-//
-//    /* Calculate the mg average values */
-//    for (i = 0; i < 3; i++) {
-//      val_st_on[i] /= 5.0f;
-//    }
-//
-//    /* Calculate the mg values for self test */
-//    for (i = 0; i < 3; i++) {
-//      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
-//    }
-//
-//    /* Check self test limit */
-//    for (i = 0; i < 3; i++) {
-//      if (( MIN_ST_LIMIT_mdps > test_val[i] ) ||
-//          ( test_val[i] > MAX_ST_LIMIT_mdps)) {
-//        st_result = ST_FAIL;
-//      }
-//    }
-//
-//    /* Disable Self Test */
-//    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_DISABLE);
-//    /* Disable sensor. */
-//    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_OFF);
-//
-//    if (st_result == ST_PASS) {
-//      printf("Self Test - PASS\r\n");
-//    }
-//
-//    else {
-//      printf("Self Test - FAIL\r\n");
-//    }
-//      hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-//      hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-//      if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-//          return HAL_ERROR;
-//      }
+        printf("LSM6DSRX IMU INIT successful!\r\n");
+
+
+    /* Restore default configuration */
+    lsm6dsrx_reset_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
+
+    do {
+      lsm6dsrx_reset_get(&dev_ctx_lsm6dsrx, &rst);
+    } while (rst);
+
+    /* Disable I3C interface */
+    lsm6dsrx_i3c_disable_set(&dev_ctx_lsm6dsrx, LSM6DSRX_I3C_DISABLE);
+    /* Enable Block Data Update */
+    lsm6dsrx_block_data_update_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
+    /* Accelerometer Self Test */
+    /* Set Output Data Rate */
+    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_52Hz);
+    /* Set full scale */
+    lsm6dsrx_xl_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_4g);
+    /* Wait stable output */
+    HAL_Delay(100);
+
+    /* Check if new value available */
+    do {
+      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+    } while (!drdy);
+
+    /* Read dummy data and discard it */
+    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+    /* Read 5 sample and get the average vale for each axis */
+    memset(val_st_off, 0x00, 3 * sizeof(float));
+
+    for (i = 0; i < 5; i++) {
+      /* Check if new value available */
+      do {
+        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+      } while (!drdy);
+
+      /* Read data and accumulate the mg value */
+      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+
+      for (j = 0; j < 3; j++) {
+        val_st_off[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
+      }
+    }
+
+    /* Calculate the mg average values */
+    for (i = 0; i < 3; i++) {
+      val_st_off[i] /= 5.0f;
+    }
+
+    /* Enable Self Test positive (or negative) */
+    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_POSITIVE);
+    //lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_XL_ST_NEGATIVE);
+    /* Wait stable output */
+    HAL_Delay(100);
+
+    /* Check if new value available */
+    do {
+      lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+    } while (!drdy);
+
+    /* Read dummy data and discard it */
+    lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+    /* Read 5 sample and get the average vale for each axis */
+    memset(val_st_on, 0x00, 3 * sizeof(float));
+
+    for (i = 0; i < 5; i++) {
+      /* Check if new value available */
+      do {
+        lsm6dsrx_xl_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+      } while (!drdy);
+
+      /* Read data and accumulate the mg value */
+      lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+
+      for (j = 0; j < 3; j++) {
+        val_st_on[j] += lsm6dsrx_from_fs4g_to_mg(data_raw[j]);
+      }
+    }
+
+    /* Calculate the mg average values */
+    for (i = 0; i < 3; i++) {
+      val_st_on[i] /= 5.0f;
+    }
+
+    /* Calculate the mg values for self test */
+    for (i = 0; i < 3; i++) {
+      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
+    }
+
+    /* Check self test limit */
+    st_result = ST_PASS;
+
+    for (i = 0; i < 3; i++) {
+      if (( MIN_ST_LIMIT_mg > test_val[i] ) ||
+          ( test_val[i] > MAX_ST_LIMIT_mg)) {
+        st_result = ST_FAIL;
+      }
+    }
+
+    /* Disable Self Test */
+    lsm6dsrx_xl_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ST_DISABLE);
+    /* Disable sensor. */
+    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_OFF);
+    /* Gyroscope Self Test */
+    /* Set Output Data Rate */
+    lsm6dsrx_gy_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_208Hz);
+    /* Set full scale */
+    lsm6dsrx_gy_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_2000dps);
+    /* Wait stable output */
+    HAL_Delay(100);
+
+    /* Check if new value available */
+    do {
+      lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+    } while (!drdy);
+
+    /* Read dummy data and discard it */
+    lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+    /* Read 5 sample and get the average vale for each axis */
+    memset(val_st_off, 0x00, 3 * sizeof(float));
+
+    for (i = 0; i < 5; i++) {
+      /* Check if new value available */
+      do {
+        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+      } while (!drdy);
+
+      /* Read data and accumulate the mg value */
+      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+
+      for (j = 0; j < 3; j++) {
+        val_st_off[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
+      }
+    }
+
+    /* Calculate the mg average values */
+    for (i = 0; i < 3; i++) {
+      val_st_off[i] /= 5.0f;
+    }
+
+    /* Enable Self Test positive (or negative) */
+    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_POSITIVE);
+    //lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LIS2DH12_GY_ST_NEGATIVE);
+    /* Wait stable output */
+    HAL_Delay(100);
+    /* Read 5 sample and get the average vale for each axis */
+    memset(val_st_on, 0x00, 3 * sizeof(float));
+
+    for (i = 0; i < 5; i++) {
+      /* Check if new value available */
+      do {
+        lsm6dsrx_gy_flag_data_ready_get(&dev_ctx_lsm6dsrx, &drdy);
+      } while (!drdy);
+
+      /* Read data and accumulate the mg value */
+      lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw);
+
+      for (j = 0; j < 3; j++) {
+        val_st_on[j] += lsm6dsrx_from_fs2000dps_to_mdps(data_raw[j]);
+      }
+    }
+
+    /* Calculate the mg average values */
+    for (i = 0; i < 3; i++) {
+      val_st_on[i] /= 5.0f;
+    }
+
+    /* Calculate the mg values for self test */
+    for (i = 0; i < 3; i++) {
+      test_val[i] = fabs((val_st_on[i] - val_st_off[i]));
+    }
+
+    /* Check self test limit */
+    for (i = 0; i < 3; i++) {
+      if (( MIN_ST_LIMIT_mdps > test_val[i] ) ||
+          ( test_val[i] > MAX_ST_LIMIT_mdps)) {
+        st_result = ST_FAIL;
+      }
+    }
+
+    /* Disable Self Test */
+    lsm6dsrx_gy_self_test_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ST_DISABLE);
+    /* Disable sensor. */
+    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_OFF);
+
+    if (st_result == ST_PASS) {
+      printf("Self Test - PASS\r\n");
+    }
+
+    else {
+      printf("Self Test - FAIL\r\n");
+    }
+      hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+      hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+      if (HAL_SPI_Init(&hspi1) != HAL_OK) {
+          return HAL_ERROR;
+      }
       //HAL_SPI_TransmitReceive(&hspi1, command, command, 2, 100);
 	// Calculate transfer function values - a and b in simple linear equation y = ax + b
 	calculate_calibration(&ta, &tb);
@@ -721,25 +726,50 @@ int main(void) {
 	bme680_get_profile_dur(&meas_period, &bme680);
 
 	struct bme680_field_data data;
-	/* USER CODE END 2 */
+  /* USER CODE END 2 */
 
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
 
 	// initialize HQ
 	HQ_Handle hqHandle;
 	hqHandle.uart = &huart4;
 	HQ_Init(&hqHandle);
+	/* Restore default configuration. */
+    lsm6dsrx_reset_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
 
+    do {
+    lsm6dsrx_reset_get(&dev_ctx_lsm6dsrx, &rst);
+    } while (rst);
+
+    /* Disable I3C interface. */
+    lsm6dsrx_i3c_disable_set(&dev_ctx_lsm6dsrx, LSM6DSRX_I3C_DISABLE);
+    /* Enable Block Data Update. */
+    lsm6dsrx_block_data_update_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
+    /* Set Output Data Rate. */
+    lsm6dsrx_xl_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_XL_ODR_12Hz5);
+    lsm6dsrx_gy_data_rate_set(&dev_ctx_lsm6dsrx, LSM6DSRX_GY_ODR_12Hz5);
+    /* Set full scale. */
+    lsm6dsrx_xl_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_2g);
+    lsm6dsrx_gy_full_scale_set(&dev_ctx_lsm6dsrx, LSM6DSRX_2000dps);
+    /* Enable timestamp. */
+    lsm6dsrx_timestamp_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
+    /* Configure filtering chain(No aux interface)
+    * Accelerometer - LPF1 + LPF2 path
+    */
+    lsm6dsrx_xl_hp_path_on_out_set(&dev_ctx_lsm6dsrx, LSM6DSRX_LP_ODR_DIV_100);
+    lsm6dsrx_xl_filter_lp2_set(&dev_ctx_lsm6dsrx, PROPERTY_ENABLE);
 	while (1) {
-		/* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-		/* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
 
 		uint32_t now = 0, then = 0;
 
 		for (;;) { // Just to fuel the debate if this is better than while(1)
-			// while(1) is easier to understand
+		    lsm6dsrx_reg_t reg;
+		    uint32_t timestamp;
+
 
 			// TODO process return value of HQ_Loop
 			HQ_Loop();
@@ -766,12 +796,11 @@ int main(void) {
 						"V_BAT = %5.3f V V_3.3 = %5.3f V V_4 = %5.3f V  I_4V = %5.3f A I_3.3V = %5.3f \r\n",
 						bat_v, v3_3, v4, i4, i3_3);
 				adt7310_read_reg(&adt7310_in, 0x00, 1, &lol);
-
 				if (!(lol & 128)) {
 					printf("TEMP_IN: %f °C\r\n",
 							adt7310_read_float(&adt7310_in));
 				}
-				adt7310_read_reg(&adt7310_in, 0x00, 1, &lol1);
+				adt7310_read_reg(&adt7310_out, 0x00, 1, &lol1);
 				if (!(lol1 & 128)) {
 					printf("TEMP_OUT: %f °C\r\n",
 							adt7310_read_float(&adt7310_out));
@@ -793,605 +822,683 @@ int main(void) {
 				}
 				//crc = HAL_CRC_Calculate(&hcrc, (uint32_t *)CRC_TEST_STRING, strlen(CRC_TEST_STRING));
 				//printf("String '%s' - (MPEG-2 CRC) => 0x%08lu!!!\r\nString '%s' - (BZIP2 CRC) => 0x%08lu!!!\r\n", CRC_TEST_STRING, crc, CRC_TEST_STRING, ~crc);
+				 /* Read output only if new value is available. */
+                lsm6dsrx_status_reg_get(&dev_ctx_lsm6dsrx, &reg.status_reg);
+
+                if (reg.status_reg.xlda || reg.status_reg.gda || reg.status_reg.tda) {
+                  lsm6dsrx_timestamp_raw_get(&dev_ctx_lsm6dsrx, &timestamp);
+                }
+
+                if (reg.status_reg.xlda) {
+                  /* Read acceleration field data */
+                  memset(data_raw_acceleration, 0x00, 3 * sizeof(int16_t));
+                  lsm6dsrx_acceleration_raw_get(&dev_ctx_lsm6dsrx, data_raw_acceleration);
+                  acceleration_mg[0] =
+                    lsm6dsrx_from_fs2g_to_mg(data_raw_acceleration[0]);
+                  acceleration_mg[1] =
+                    lsm6dsrx_from_fs2g_to_mg(data_raw_acceleration[1]);
+                  acceleration_mg[2] =
+                    lsm6dsrx_from_fs2g_to_mg(data_raw_acceleration[2]);
+                  printf("Acceleration [mg]:%4.2f\t%4.2f\t%4.2f %lu\r\n",
+                          acceleration_mg[0], acceleration_mg[1], acceleration_mg[2],
+                          timestamp);
+                }
+
+                if (reg.status_reg.gda) {
+                  /* Read angular rate field data */
+                  memset(data_raw_angular_rate, 0x00, 3 * sizeof(int16_t));
+                  lsm6dsrx_angular_rate_raw_get(&dev_ctx_lsm6dsrx, data_raw_angular_rate);
+                  angular_rate_mdps[0] =
+                    lsm6dsrx_from_fs2000dps_to_mdps(data_raw_angular_rate[0]);
+                  angular_rate_mdps[1] =
+                    lsm6dsrx_from_fs2000dps_to_mdps(data_raw_angular_rate[1]);
+                  angular_rate_mdps[2] =
+                    lsm6dsrx_from_fs2000dps_to_mdps(data_raw_angular_rate[2]);
+                  printf("Angular rate [mdps]:%4.2f\t%4.2f\t%4.2f %lu\r\n",
+                          angular_rate_mdps[0], angular_rate_mdps[1], angular_rate_mdps[2],
+                          timestamp);
+                }
+
+                if (reg.status_reg.tda) {
+                  /* Read temperature data */
+                  memset(&data_raw_temperature, 0x00, sizeof(int16_t));
+                  lsm6dsrx_temperature_raw_get(&dev_ctx_lsm6dsrx, &data_raw_temperature);
+                  temperature_degC = lsm6dsrx_from_lsb_to_celsius(data_raw_temperature);
+                  printf("Temperature [degC]:%6.2f %lu\r\n", temperature_degC, timestamp);
+                }
 				then = now;
 			}
 		}
 	}
-	/* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
-void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-	/** Configure the main internal regulator output voltage
-	 */
-	HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+  /** Configure the main internal regulator output voltage
+  */
+  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-	/** Initializes the RCC Oscillators according to the specified parameters
-	 * in the RCC_OscInitTypeDef structure.
-	 */
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
-	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-	RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-	RCC_OscInitStruct.PLL.PLLN = 8;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-	RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		Error_Handler();
-	}
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
+  RCC_OscInitStruct.PLL.PLLN = 8;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-	/** Initializes the CPU, AHB and APB buses clocks
-	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
-		Error_Handler();
-	}
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /**
- * @brief ADC1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_ADC1_Init(void) {
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
 
-	/* USER CODE BEGIN ADC1_Init 0 */
+  /* USER CODE BEGIN ADC1_Init 0 */
 
-	/* USER CODE END ADC1_Init 0 */
+  /* USER CODE END ADC1_Init 0 */
 
-	ADC_ChannelConfTypeDef sConfig = { 0 };
+  ADC_ChannelConfTypeDef sConfig = {0};
 
-	/* USER CODE BEGIN ADC1_Init 1 */
+  /* USER CODE BEGIN ADC1_Init 1 */
 
-	/* USER CODE END ADC1_Init 1 */
+  /* USER CODE END ADC1_Init 1 */
 
-	/** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
-	 */
-	hadc1.Instance = ADC1;
-	hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
-	hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-	hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
-	hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
-	hadc1.Init.LowPowerAutoWait = DISABLE;
-	hadc1.Init.LowPowerAutoPowerOff = DISABLE;
-	hadc1.Init.ContinuousConvMode = DISABLE;
-	hadc1.Init.NbrOfConversion = 5;
-	hadc1.Init.DiscontinuousConvMode = DISABLE;
-	hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T15_TRGO;
-	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_FALLING;
-	hadc1.Init.DMAContinuousRequests = ENABLE;
-	hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
-	hadc1.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_79CYCLES_5;
-	hadc1.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_1CYCLE_5;
-	hadc1.Init.OversamplingMode = DISABLE;
-	hadc1.Init.TriggerFrequencyMode = ADC_TRIGGER_FREQ_HIGH;
-	if (HAL_ADC_Init(&hadc1) != HAL_OK) {
-		Error_Handler();
-	}
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
+  hadc1.Init.LowPowerAutoWait = DISABLE;
+  hadc1.Init.LowPowerAutoPowerOff = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.NbrOfConversion = 5;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T15_TRGO;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_FALLING;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
+  hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  hadc1.Init.SamplingTimeCommon1 = ADC_SAMPLETIME_79CYCLES_5;
+  hadc1.Init.SamplingTimeCommon2 = ADC_SAMPLETIME_1CYCLE_5;
+  hadc1.Init.OversamplingMode = DISABLE;
+  hadc1.Init.TriggerFrequencyMode = ADC_TRIGGER_FREQ_HIGH;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-	/** Configure Regular Channel
-	 */
-	sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
-	sConfig.Rank = ADC_REGULAR_RANK_1;
-	sConfig.SamplingTime = ADC_SAMPLINGTIME_COMMON_1;
-	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
-		Error_Handler();
-	}
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLINGTIME_COMMON_1;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-	/** Configure Regular Channel
-	 */
-	sConfig.Channel = ADC_CHANNEL_VREFINT;
-	sConfig.Rank = ADC_REGULAR_RANK_2;
-	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
-		Error_Handler();
-	}
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_VREFINT;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-	/** Configure Regular Channel
-	 */
-	sConfig.Channel = ADC_CHANNEL_2;
-	sConfig.Rank = ADC_REGULAR_RANK_3;
-	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
-		Error_Handler();
-	}
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_2;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-	/** Configure Regular Channel
-	 */
-	sConfig.Channel = ADC_CHANNEL_3;
-	sConfig.Rank = ADC_REGULAR_RANK_4;
-	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
-		Error_Handler();
-	}
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Rank = ADC_REGULAR_RANK_4;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-	/** Configure Regular Channel
-	 */
-	sConfig.Channel = ADC_CHANNEL_4;
-	sConfig.Rank = ADC_REGULAR_RANK_5;
-	if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN ADC1_Init 2 */
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Rank = ADC_REGULAR_RANK_5;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
 
-	/* USER CODE END ADC1_Init 2 */
-
-}
-
-/**
- * @brief CRC Initialization Function
- * @param None
- * @retval None
- */
-static void MX_CRC_Init(void) {
-
-	/* USER CODE BEGIN CRC_Init 0 */
-
-	/* USER CODE END CRC_Init 0 */
-
-	/* USER CODE BEGIN CRC_Init 1 */
-
-	/* USER CODE END CRC_Init 1 */
-	hcrc.Instance = CRC;
-	hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_ENABLE;
-	hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
-	hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
-	hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
-	hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
-	if (HAL_CRC_Init(&hcrc) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN CRC_Init 2 */
-
-	/* USER CODE END CRC_Init 2 */
+  /* USER CODE END ADC1_Init 2 */
 
 }
 
 /**
- * @brief SPI1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_SPI1_Init(void) {
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
 
-	/* USER CODE BEGIN SPI1_Init 0 */
+  /* USER CODE BEGIN CRC_Init 0 */
 
-	/* USER CODE END SPI1_Init 0 */
+  /* USER CODE END CRC_Init 0 */
 
-	/* USER CODE BEGIN SPI1_Init 1 */
+  /* USER CODE BEGIN CRC_Init 1 */
 
-	/* USER CODE END SPI1_Init 1 */
-	/* SPI1 parameter configuration*/
-	hspi1.Instance = SPI1;
-	hspi1.Init.Mode = SPI_MODE_MASTER;
-	hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-	hspi1.Init.NSS = SPI_NSS_SOFT;
-	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
-	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-	hspi1.Init.CRCPolynomial = 7;
-	hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-	hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
-	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN SPI1_Init 2 */
+  /* USER CODE END CRC_Init 1 */
+  hcrc.Instance = CRC;
+  hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_ENABLE;
+  hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
+  hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
+  hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
+  hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CRC_Init 2 */
 
-	/* USER CODE END SPI1_Init 2 */
+  /* USER CODE END CRC_Init 2 */
 
 }
 
 /**
- * @brief TIM7 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM7_Init(void) {
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
 
-	/* USER CODE BEGIN TIM7_Init 0 */
+  /* USER CODE BEGIN SPI1_Init 0 */
 
-	/* USER CODE END TIM7_Init 0 */
+  /* USER CODE END SPI1_Init 0 */
 
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+  /* USER CODE BEGIN SPI1_Init 1 */
 
-	/* USER CODE BEGIN TIM7_Init 1 */
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 7;
+  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
 
-	/* USER CODE END TIM7_Init 1 */
-	htim7.Instance = TIM7;
-	htim7.Init.Prescaler = 64000;
-	htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim7.Init.Period = 500;
-	htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim7) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM7_Init 2 */
-
-	/* USER CODE END TIM7_Init 2 */
-
-}
-
-/**
- * @brief TIM14 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM14_Init(void) {
-
-	/* USER CODE BEGIN TIM14_Init 0 */
-
-	/* USER CODE END TIM14_Init 0 */
-
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
-
-	/* USER CODE BEGIN TIM14_Init 1 */
-
-	/* USER CODE END TIM14_Init 1 */
-	htim14.Instance = TIM14;
-	htim14.Init.Prescaler = 64000;
-	htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim14.Init.Period = 1000;
-	htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim14) != HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_OC_Init(&htim14) != HAL_OK) {
-		Error_Handler();
-	}
-	sConfigOC.OCMode = TIM_OCMODE_TIMING;
-	sConfigOC.Pulse = 0;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_OC_ConfigChannel(&htim14, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM14_Init 2 */
-
-	/* USER CODE END TIM14_Init 2 */
+  /* USER CODE END SPI1_Init 2 */
 
 }
 
 /**
- * @brief TIM15 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM15_Init(void) {
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
 
-	/* USER CODE BEGIN TIM15_Init 0 */
+  /* USER CODE BEGIN TIM7_Init 0 */
 
-	/* USER CODE END TIM15_Init 0 */
+  /* USER CODE END TIM7_Init 0 */
 
-	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-	/* USER CODE BEGIN TIM15_Init 1 */
+  /* USER CODE BEGIN TIM7_Init 1 */
 
-	/* USER CODE END TIM15_Init 1 */
-	htim15.Instance = TIM15;
-	htim15.Init.Prescaler = 639;
-	htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim15.Init.Period = 999;
-	htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim15.Init.RepetitionCounter = 0;
-	htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-	if (HAL_TIM_Base_Init(&htim15) != HAL_OK) {
-		Error_Handler();
-	}
-	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim15, &sClockSourceConfig) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim15, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM15_Init 2 */
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 64000;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 500;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
 
-	/* USER CODE END TIM15_Init 2 */
+  /* USER CODE END TIM7_Init 2 */
 
 }
 
 /**
- * @brief TIM16 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM16_Init(void) {
+  * @brief TIM14 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM14_Init(void)
+{
 
-	/* USER CODE BEGIN TIM16_Init 0 */
+  /* USER CODE BEGIN TIM14_Init 0 */
 
-	/* USER CODE END TIM16_Init 0 */
+  /* USER CODE END TIM14_Init 0 */
 
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
-	TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = { 0 };
+  TIM_OC_InitTypeDef sConfigOC = {0};
 
-	/* USER CODE BEGIN TIM16_Init 1 */
+  /* USER CODE BEGIN TIM14_Init 1 */
 
-	/* USER CODE END TIM16_Init 1 */
-	htim16.Instance = TIM16;
-	htim16.Init.Prescaler = 64000;
-	htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim16.Init.Period = 5000;
-	htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim16.Init.RepetitionCounter = 0;
-	htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim16) != HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_OC_Init(&htim16) != HAL_OK) {
-		Error_Handler();
-	}
-	sConfigOC.OCMode = TIM_OCMODE_TIMING;
-	sConfigOC.Pulse = 0;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-	sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-	if (HAL_TIM_OC_ConfigChannel(&htim16, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-	sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-	sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-	sBreakDeadTimeConfig.DeadTime = 0;
-	sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-	sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-	sBreakDeadTimeConfig.BreakFilter = 0;
-	sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-	if (HAL_TIMEx_ConfigBreakDeadTime(&htim16, &sBreakDeadTimeConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM16_Init 2 */
+  /* USER CODE END TIM14_Init 1 */
+  htim14.Instance = TIM14;
+  htim14.Init.Prescaler = 64000;
+  htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim14.Init.Period = 1000;
+  htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_Init(&htim14) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_OC_ConfigChannel(&htim14, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM14_Init 2 */
 
-	/* USER CODE END TIM16_Init 2 */
+  /* USER CODE END TIM14_Init 2 */
 
 }
 
 /**
- * @brief TIM17 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM17_Init(void) {
+  * @brief TIM15 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM15_Init(void)
+{
 
-	/* USER CODE BEGIN TIM17_Init 0 */
+  /* USER CODE BEGIN TIM15_Init 0 */
 
-	/* USER CODE END TIM17_Init 0 */
+  /* USER CODE END TIM15_Init 0 */
 
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
-	TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = { 0 };
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-	/* USER CODE BEGIN TIM17_Init 1 */
+  /* USER CODE BEGIN TIM15_Init 1 */
 
-	/* USER CODE END TIM17_Init 1 */
-	htim17.Instance = TIM17;
-	htim17.Init.Prescaler = 64000;
-	htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim17.Init.Period = 5000;
-	htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim17.Init.RepetitionCounter = 0;
-	htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim17) != HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_OC_Init(&htim17) != HAL_OK) {
-		Error_Handler();
-	}
-	sConfigOC.OCMode = TIM_OCMODE_TIMING;
-	sConfigOC.Pulse = 0;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-	sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-	if (HAL_TIM_OC_ConfigChannel(&htim17, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
-	sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
-	sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
-	sBreakDeadTimeConfig.DeadTime = 0;
-	sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
-	sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
-	sBreakDeadTimeConfig.BreakFilter = 0;
-	sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
-	if (HAL_TIMEx_ConfigBreakDeadTime(&htim17, &sBreakDeadTimeConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM17_Init 2 */
+  /* USER CODE END TIM15_Init 1 */
+  htim15.Instance = TIM15;
+  htim15.Init.Prescaler = 639;
+  htim15.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim15.Init.Period = 999;
+  htim15.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim15.Init.RepetitionCounter = 0;
+  htim15.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim15) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim15, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim15, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM15_Init 2 */
 
-	/* USER CODE END TIM17_Init 2 */
+  /* USER CODE END TIM15_Init 2 */
 
 }
 
 /**
- * @brief USART1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_USART1_UART_Init(void) {
+  * @brief TIM16 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM16_Init(void)
+{
 
-	/* USER CODE BEGIN USART1_Init 0 */
+  /* USER CODE BEGIN TIM16_Init 0 */
 
-	/* USER CODE END USART1_Init 0 */
+  /* USER CODE END TIM16_Init 0 */
 
-	/* USER CODE BEGIN USART1_Init 1 */
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
 
-	/* USER CODE END USART1_Init 1 */
-	huart1.Instance = USART1;
-	huart1.Init.BaudRate = 115200;
-	huart1.Init.WordLength = UART_WORDLENGTH_8B;
-	huart1.Init.StopBits = UART_STOPBITS_1;
-	huart1.Init.Parity = UART_PARITY_NONE;
-	huart1.Init.Mode = UART_MODE_TX_RX;
-	huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-	huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-	huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-	huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-	if (HAL_UART_Init(&huart1) != HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_UARTEx_SetTxFifoThreshold(&huart1, UART_TXFIFO_THRESHOLD_1_8)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_UARTEx_SetRxFifoThreshold(&huart1, UART_RXFIFO_THRESHOLD_1_8)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_UARTEx_DisableFifoMode(&huart1) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN USART1_Init 2 */
+  /* USER CODE BEGIN TIM16_Init 1 */
 
-	/* USER CODE END USART1_Init 2 */
+  /* USER CODE END TIM16_Init 1 */
+  htim16.Instance = TIM16;
+  htim16.Init.Prescaler = 64000;
+  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim16.Init.Period = 5000;
+  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim16.Init.RepetitionCounter = 0;
+  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_Init(&htim16) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_OC_ConfigChannel(&htim16, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.BreakFilter = 0;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim16, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM16_Init 2 */
 
-}
-
-/**
- * @brief USART4 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_USART4_UART_Init(void) {
-
-	/* USER CODE BEGIN USART4_Init 0 */
-
-	/* USER CODE END USART4_Init 0 */
-
-	/* USER CODE BEGIN USART4_Init 1 */
-
-	/* USER CODE END USART4_Init 1 */
-	huart4.Instance = USART4;
-	huart4.Init.BaudRate = 115200;
-	huart4.Init.WordLength = UART_WORDLENGTH_8B;
-	huart4.Init.StopBits = UART_STOPBITS_1;
-	huart4.Init.Parity = UART_PARITY_NONE;
-	huart4.Init.Mode = UART_MODE_TX_RX;
-	huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-	huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-	huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-	huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-	if (HAL_UART_Init(&huart4) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN USART4_Init 2 */
-
-	/* USER CODE END USART4_Init 2 */
+  /* USER CODE END TIM16_Init 2 */
 
 }
 
 /**
- * Enable DMA controller clock
- */
-static void MX_DMA_Init(void) {
+  * @brief TIM17 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM17_Init(void)
+{
 
-	/* DMA controller clock enable */
-	__HAL_RCC_DMA1_CLK_ENABLE();
+  /* USER CODE BEGIN TIM17_Init 0 */
 
-	/* DMA interrupt init */
-	/* DMA1_Channel1_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-	/* DMA1_Channel2_3_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+  /* USER CODE END TIM17_Init 0 */
+
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM17_Init 1 */
+
+  /* USER CODE END TIM17_Init 1 */
+  htim17.Instance = TIM17;
+  htim17.Init.Prescaler = 64000;
+  htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim17.Init.Period = 5000;
+  htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim17.Init.RepetitionCounter = 0;
+  htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_OC_ConfigChannel(&htim17, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.BreakFilter = 0;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim17, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM17_Init 2 */
+
+  /* USER CODE END TIM17_Init 2 */
 
 }
 
 /**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
-static void MX_GPIO_Init(void) {
-	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
 
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+  /* USER CODE BEGIN USART1_Init 0 */
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOC, LED_0_Pin | S0_SENS_Pin, GPIO_PIN_RESET);
+  /* USER CODE END USART1_Init 0 */
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA,
-			ROPE_CUT_Pin | BUZZER_Pin | MUX_EN_1_Pin | MUX_EN_0_Pin
-					| S1_SENS_Pin | S2_SENS_Pin, GPIO_PIN_RESET);
+  /* USER CODE BEGIN USART1_Init 1 */
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOB, S1_CAM_Pin | S0_CAM_Pin, GPIO_PIN_RESET);
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart1, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart1, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
 
-	/*Configure GPIO pins : LED_0_Pin S0_SENS_Pin */
-	GPIO_InitStruct.Pin = LED_0_Pin | S0_SENS_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  /* USER CODE END USART1_Init 2 */
 
-	/*Configure GPIO pins : ROPE_CUT_Pin BUZZER_Pin MUX_EN_1_Pin MUX_EN_0_Pin
-	 S1_SENS_Pin S2_SENS_Pin */
-	GPIO_InitStruct.Pin = ROPE_CUT_Pin | BUZZER_Pin | MUX_EN_1_Pin
-			| MUX_EN_0_Pin | S1_SENS_Pin | S2_SENS_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+}
 
-	/*Configure GPIO pins : S1_CAM_Pin S0_CAM_Pin */
-	GPIO_InitStruct.Pin = S1_CAM_Pin | S0_CAM_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+/**
+  * @brief USART4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART4_UART_Init(void)
+{
 
-	/*Configure GPIO pin : CAM_HB_0_Pin */
-	GPIO_InitStruct.Pin = CAM_HB_0_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(CAM_HB_0_GPIO_Port, &GPIO_InitStruct);
+  /* USER CODE BEGIN USART4_Init 0 */
 
-	/*Configure GPIO pin : CAM_HB_1_Pin */
-	GPIO_InitStruct.Pin = CAM_HB_1_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(CAM_HB_1_GPIO_Port, &GPIO_InitStruct);
+  /* USER CODE END USART4_Init 0 */
+
+  /* USER CODE BEGIN USART4_Init 1 */
+
+  /* USER CODE END USART4_Init 1 */
+  huart4.Instance = USART4;
+  huart4.Init.BaudRate = 115200;
+  huart4.Init.WordLength = UART_WORDLENGTH_8B;
+  huart4.Init.StopBits = UART_STOPBITS_1;
+  huart4.Init.Parity = UART_PARITY_NONE;
+  huart4.Init.Mode = UART_MODE_TX_RX;
+  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART4_Init 2 */
+
+  /* USER CODE END USART4_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, LED_0_Pin|S0_SENS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, ROPE_CUT_Pin|BUZZER_Pin|MUX_EN_1_Pin|MUX_EN_0_Pin
+                          |S1_SENS_Pin|S2_SENS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, S1_CAM_Pin|S0_CAM_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : LED_0_Pin S0_SENS_Pin */
+  GPIO_InitStruct.Pin = LED_0_Pin|S0_SENS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : ROPE_CUT_Pin BUZZER_Pin MUX_EN_1_Pin MUX_EN_0_Pin
+                           S1_SENS_Pin S2_SENS_Pin */
+  GPIO_InitStruct.Pin = ROPE_CUT_Pin|BUZZER_Pin|MUX_EN_1_Pin|MUX_EN_0_Pin
+                          |S1_SENS_Pin|S2_SENS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : S1_CAM_Pin S0_CAM_Pin */
+  GPIO_InitStruct.Pin = S1_CAM_Pin|S0_CAM_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : CAM_HB_0_Pin */
+  GPIO_InitStruct.Pin = CAM_HB_0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(CAM_HB_0_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : CAM_HB_1_Pin */
+  GPIO_InitStruct.Pin = CAM_HB_1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(CAM_HB_1_GPIO_Port, &GPIO_InitStruct);
 
 }
 
@@ -1810,7 +1917,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 static int32_t lsm6dsrx_write(void *handle, uint8_t reg, const uint8_t *bufp,
 		uint16_t len) {
 	/* Write multiple command */
-    int status = 0;
+    int status = HAL_OK;
 	select_sensor(IMU);
 	status = spi_write(handle, reg, bufp, len);
 	deselect_sensors();
@@ -1820,7 +1927,8 @@ static int32_t lsm6dsrx_write(void *handle, uint8_t reg, const uint8_t *bufp,
 static int32_t lsm6dsrx_read(void *handle, uint8_t reg, uint8_t *bufp,
 		uint16_t len) {
 	/* Read multiple command */
-    int status = 0;
+    int status = HAL_OK;
+    reg |= 0x80;
     select_sensor(IMU);
     status = spi_read(handle, reg, bufp, len);
     deselect_sensors();
@@ -1830,7 +1938,8 @@ static int32_t lsm6dsrx_read(void *handle, uint8_t reg, uint8_t *bufp,
 static int32_t lis2mdl_write(void *handle, uint8_t reg, const uint8_t *bufp,
         uint16_t len) {
     /* Write multiple command */
-    int status = 0;
+    int status = HAL_OK;
+    reg |= 0x40;
     select_sensor(MAG);
     status = spi_write(handle, reg, bufp, len);
     deselect_sensors();
@@ -1841,6 +1950,7 @@ static int32_t lis2mdl_read(void *handle, uint8_t reg, uint8_t *bufp,
         uint16_t len) {
     /* Read multiple command */
     int status = 0;
+    reg |= 0xC0;
     select_sensor(MAG);
     status = spi_read(handle, reg, bufp, len);
     deselect_sensors();
@@ -1860,7 +1970,6 @@ static int32_t lis2mdl_read(void *handle, uint8_t reg, uint8_t *bufp,
 static int32_t spi_write(void *handle, uint8_t reg, const uint8_t *bufp,
         uint16_t len) {
     int status = HAL_OK;
-    reg |= 0x40;
     select_sensor(IMU);
     status = HAL_SPI_Transmit(handle, &reg, 1, 1000);
     if(status != HAL_OK){
@@ -1886,7 +1995,7 @@ static int32_t spi_write(void *handle, uint8_t reg, const uint8_t *bufp,
 static int32_t spi_read(void *handle, uint8_t reg, uint8_t *bufp,
         uint16_t len){
     int status = HAL_OK;
-    reg |= 0xC0;
+
     status = HAL_SPI_Transmit(handle, &reg, 1, 1000);
     if(status != HAL_OK){
         deselect_sensors();
@@ -1903,16 +2012,17 @@ static int32_t spi_read(void *handle, uint8_t reg, uint8_t *bufp,
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
-void Error_Handler(void) {
-	/* USER CODE BEGIN Error_Handler_Debug */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
 	while (1) {
 	}
-	/* USER CODE END Error_Handler_Debug */
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
