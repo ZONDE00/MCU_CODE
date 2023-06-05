@@ -1,0 +1,11 @@
+mcp795.c:22:5:mcp795_read_status_register	2
+mcp795.c:39:5:mcp795_read_id	2
+mcp795.c:3:5:mcp795_init	3
+mcp795.c:155:6:mcp795_decrypt_time	1
+mcp795.c:138:5:mcp795_read_time	2
+mcp795.c:173:5:mcp795_set_time	1
+mcp795.c:204:5:mcp795_start_counting	2
+mcp795.c:231:5:mcp795_write_enable	2
+mcp795.c:108:5:mcp795_id_unlock	4
+mcp795.c:61:5:mcp795_write_id	5
+mcp795.c:220:5:mcp795_eeprom_write	2

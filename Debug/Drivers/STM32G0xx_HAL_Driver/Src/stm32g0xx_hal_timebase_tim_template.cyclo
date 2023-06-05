@@ -1,0 +1,5 @@
+stm32g0xx_hal_timebase_tim_template.c:72:19:HAL_InitTick	6
+stm32g0xx_hal_timebase_tim_template.c:164:6:HAL_SuspendTick	1
+stm32g0xx_hal_timebase_tim_template.c:175:6:HAL_ResumeTick	1
+stm32g0xx_hal_timebase_tim_template.c:189:6:HAL_TIM_PeriodElapsedCallback	1
+stm32g0xx_hal_timebase_tim_template.c:198:6:TIM14_IRQHandler	1

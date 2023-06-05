@@ -1,0 +1,6 @@
+cam.c:28:6:STOP_CAM	1
+cam.c:40:6:OFF_CAM	1
+cam.c:50:6:select_camera_port	5
+cam.c:72:6:deselect_camera_port	1
+cam.c:3:6:ON_CAM	2
+cam.c:14:6:START_CAM	3

@@ -1,0 +1,5 @@
+../Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_hal_timebase_rtc_wakeup_template.c:109:19:HAL_InitTick	128	static
+../Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_hal_timebase_rtc_wakeup_template.c:248:6:HAL_SuspendTick	0	static
+../Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_hal_timebase_rtc_wakeup_template.c:263:6:HAL_ResumeTick	0	static
+../Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_hal_timebase_rtc_wakeup_template.c:281:6:HAL_RTCEx_WakeUpTimerEventCallback	8	static
+../Drivers/STM32G0xx_HAL_Driver/Src/stm32g0xx_hal_timebase_rtc_wakeup_template.c:290:6:RTC_TAMP_IRQHandler	8	static

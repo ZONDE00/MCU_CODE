@@ -1,0 +1,17 @@
+../Core/Src/boardtrx.c:52:17:BOARDTRX_Init	16	static
+../Core/Src/boardtrx.c:167:21:BOARDTRX_CmdGetStatus	0	static
+../Core/Src/boardtrx.c:179:6:BOARDTRX_CmdClearStatus	0	static
+../Core/Src/boardtrx.c:556:10:BOARDTRX_CalcCRC	12	static
+../Core/Src/boardtrx.c:549:9:BOARDTRX_CheckCRC	16	static
+../Core/Src/boardtrx.c:573:17:BOARDTRX_AddToQue	20	static
+../Core/Src/boardtrx.c:136:17:BOARDTRX_CmdSend	16	static
+../Core/Src/boardtrx.c:185:17:BOARDTRX_DataRequestAll	48	static
+../Core/Src/boardtrx.c:199:17:BOARDTRX_DataRequest	16	static
+../Core/Src/boardtrx.c:628:9:BOARDTRX_GetFromQue	0	static
+../Core/Src/boardtrx.c:665:6:BOARDTRX_ClearFromQue	0	static
+../Core/Src/boardtrx.c:376:17:BOARDTRX_ProcessRx	24	static
+../Core/Src/boardtrx.c:683:17:BOARDTRX_UART_Send	24	static
+../Core/Src/boardtrx.c:293:17:BOARDTRX_ProcessTx	32	static
+../Core/Src/boardtrx.c:215:17:BOARDTRX_Loop	24	static
+../Core/Src/boardtrx.c:749:6:BOARDTRX_UART_RXERROR_CB	8	static
+../Core/Src/boardtrx.c:758:6:BOARDTRX_UART_RX_CB	0	static

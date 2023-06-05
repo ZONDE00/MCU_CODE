@@ -1,0 +1,6 @@
+../Core/Src/cam.c:28:6:STOP_CAM	0	static
+../Core/Src/cam.c:40:6:OFF_CAM	0	static
+../Core/Src/cam.c:50:6:select_camera_port	8	static
+../Core/Src/cam.c:72:6:deselect_camera_port	8	static
+../Core/Src/cam.c:3:6:ON_CAM	8	static
+../Core/Src/cam.c:14:6:START_CAM	8	static

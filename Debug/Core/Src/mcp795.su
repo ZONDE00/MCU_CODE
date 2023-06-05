@@ -1,0 +1,11 @@
+../Core/Src/mcp795.c:22:5:mcp795_read_status_register	32	static
+../Core/Src/mcp795.c:39:5:mcp795_read_id	32	static
+../Core/Src/mcp795.c:3:5:mcp795_init	48	static
+../Core/Src/mcp795.c:155:6:mcp795_decrypt_time	20	static
+../Core/Src/mcp795.c:138:5:mcp795_read_time	48	static
+../Core/Src/mcp795.c:173:5:mcp795_set_time	40	static
+../Core/Src/mcp795.c:204:5:mcp795_start_counting	24	static
+../Core/Src/mcp795.c:231:5:mcp795_write_enable	8	static
+../Core/Src/mcp795.c:108:5:mcp795_id_unlock	24	static
+../Core/Src/mcp795.c:61:5:mcp795_write_id	48	static
+../Core/Src/mcp795.c:220:5:mcp795_eeprom_write	8	static

@@ -1,0 +1,4 @@
+../Core/Src/hq.c:208:6:HQ_BURN_WORLD	8	static
+../Core/Src/hq.c:221:6:HQ_BUZZZ	8	static
+../Core/Src/hq.c:110:18:HQ_Init	40	static
+../Core/Src/hq.c:195:18:HQ_Loop	40	static

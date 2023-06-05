@@ -1,0 +1,5 @@
+stm32g0xx_hal_timebase_rtc_wakeup_template.c:109:19:HAL_InitTick	10
+stm32g0xx_hal_timebase_rtc_wakeup_template.c:248:6:HAL_SuspendTick	1
+stm32g0xx_hal_timebase_rtc_wakeup_template.c:263:6:HAL_ResumeTick	1
+stm32g0xx_hal_timebase_rtc_wakeup_template.c:281:6:HAL_RTCEx_WakeUpTimerEventCallback	1
+stm32g0xx_hal_timebase_rtc_wakeup_template.c:290:6:RTC_TAMP_IRQHandler	1

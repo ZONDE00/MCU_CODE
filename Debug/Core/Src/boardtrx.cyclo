@@ -1,0 +1,17 @@
+boardtrx.c:52:17:BOARDTRX_Init	24
+boardtrx.c:167:21:BOARDTRX_CmdGetStatus	2
+boardtrx.c:179:6:BOARDTRX_CmdClearStatus	2
+boardtrx.c:556:10:BOARDTRX_CalcCRC	2
+boardtrx.c:549:9:BOARDTRX_CheckCRC	1
+boardtrx.c:573:17:BOARDTRX_AddToQue	10
+boardtrx.c:136:17:BOARDTRX_CmdSend	5
+boardtrx.c:185:17:BOARDTRX_DataRequestAll	3
+boardtrx.c:199:17:BOARDTRX_DataRequest	3
+boardtrx.c:628:9:BOARDTRX_GetFromQue	11
+boardtrx.c:665:6:BOARDTRX_ClearFromQue	5
+boardtrx.c:376:17:BOARDTRX_ProcessRx	17
+boardtrx.c:683:17:BOARDTRX_UART_Send	6
+boardtrx.c:293:17:BOARDTRX_ProcessTx	12
+boardtrx.c:215:17:BOARDTRX_Loop	11
+boardtrx.c:749:6:BOARDTRX_UART_RXERROR_CB	1
+boardtrx.c:758:6:BOARDTRX_UART_RX_CB	5

@@ -1,0 +1,8 @@
+adt7310.c:126:5:adt7310_resetspi	3
+adt7310.c:145:5:adt7310_configspi	3
+adt7310.c:67:5:adt7310_read_reg	4
+adt7310.c:102:12:adt7310_write_reg	4
+adt7310.c:196:5:adt7310_set_config	2
+adt7310.c:164:5:adt7310_init	4
+adt7310.c:204:9:adt7310_read_raw	2
+adt7310.c:218:7:adt7310_read_float	3

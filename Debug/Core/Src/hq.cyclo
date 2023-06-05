@@ -1,0 +1,4 @@
+hq.c:208:6:HQ_BURN_WORLD	2
+hq.c:221:6:HQ_BUZZZ	2
+hq.c:110:18:HQ_Init	2
+hq.c:195:18:HQ_Loop	1
