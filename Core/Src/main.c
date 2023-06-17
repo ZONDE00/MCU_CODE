@@ -118,6 +118,15 @@ float bat_v = 0.0f; // Result of BAT_V calculation
 uint8_t set_required_settings = 0;
 uint32_t crc = 0;
 
+float temp_in = 0;
+float temp_out = 0;
+float temp_bme = 0;
+float bme_pressure = 0;
+float bme_air_q = 0;
+float bme_humid = 0;
+uint32_t bme_air_ohm = 0;
+uint32_t senStatus = 0;
+
 uint8_t buzz_on = 0;
 
 uint8_t whoamI = 0;
@@ -797,15 +806,19 @@ int main(void)
 						bat_v, v3_3, v4, i4, i3_3);
 				adt7310_read_reg(&adt7310_in, 0x00, 1, &lol);
 				if (!(lol & 128)) {
-					printf("TEMP_IN: %f °C\r\n",
-							adt7310_read_float(&adt7310_in));
+				    temp_in = adt7310_read_float(&adt7310_in);
+                    printf("TEMP_IN: %f °C\r\n", temp_in);
 				}
 				adt7310_read_reg(&adt7310_out, 0x00, 1, &lol1);
 				if (!(lol1 & 128)) {
-					printf("TEMP_OUT: %f °C\r\n",
-							adt7310_read_float(&adt7310_out));
+                    temp_out = adt7310_read_float(&adt7310_out);
+                    printf("TEMP_OUT: %f °C\r\n", temp_out);
 				}
 				bme680_get_sensor_data(&data, &bme680);
+                temp_bme = data.temperature / 100.0f;
+                bme_pressure = data.pressure / 100.0f;
+                bme_humid = data.humidity / 1000.0f;
+                bme_air_ohm = data.gas_resistance;
 				printf("T: %.2f degC, P: %.2f hPa, H %.2f %%rH  %.2f Height",
 						data.temperature / 100.0f, data.pressure / 100.0f,
 						data.humidity / 1000.0f, data.approx_altitude);
