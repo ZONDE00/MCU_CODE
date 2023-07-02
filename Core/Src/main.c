@@ -1826,50 +1826,47 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 }
 
 void select_sensor(uint8_t sensor) {
+	HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, RESET);
+
 	if (sensor == RTC_MOD) {
 		HAL_GPIO_WritePin(S0_SENS_GPIO_Port, S0_SENS_Pin, RESET);
 		HAL_GPIO_WritePin(S1_SENS_GPIO_Port, S1_SENS_Pin, RESET);
 		HAL_GPIO_WritePin(S2_SENS_GPIO_Port, S2_SENS_Pin, RESET);
-		HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, SET);
 	} else if (sensor == IMU) {
 		HAL_GPIO_WritePin(S0_SENS_GPIO_Port, S0_SENS_Pin, SET);
 		HAL_GPIO_WritePin(S1_SENS_GPIO_Port, S1_SENS_Pin, RESET);
 		HAL_GPIO_WritePin(S2_SENS_GPIO_Port, S2_SENS_Pin, RESET);
-		HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, SET);
 	} else if (sensor == BME680) {
 		HAL_GPIO_WritePin(S0_SENS_GPIO_Port, S0_SENS_Pin, RESET);
 		HAL_GPIO_WritePin(S1_SENS_GPIO_Port, S1_SENS_Pin, SET);
 		HAL_GPIO_WritePin(S2_SENS_GPIO_Port, S2_SENS_Pin, RESET);
-		HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, SET);
 	} else if (sensor == TEMP_OUT) {
 		HAL_GPIO_WritePin(S0_SENS_GPIO_Port, S0_SENS_Pin, SET);
 		HAL_GPIO_WritePin(S1_SENS_GPIO_Port, S1_SENS_Pin, SET);
 		HAL_GPIO_WritePin(S2_SENS_GPIO_Port, S2_SENS_Pin, RESET);
-		HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, SET);
 	} else if (sensor == TEMP_IN) {
 		HAL_GPIO_WritePin(S0_SENS_GPIO_Port, S0_SENS_Pin, RESET);
 		HAL_GPIO_WritePin(S1_SENS_GPIO_Port, S1_SENS_Pin, RESET);
 		HAL_GPIO_WritePin(S2_SENS_GPIO_Port, S2_SENS_Pin, SET);
-		HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, SET);
 	} else if (sensor == SD_CARD) {
 		HAL_GPIO_WritePin(S0_SENS_GPIO_Port, S0_SENS_Pin, SET);
 		HAL_GPIO_WritePin(S1_SENS_GPIO_Port, S1_SENS_Pin, RESET);
 		HAL_GPIO_WritePin(S2_SENS_GPIO_Port, S2_SENS_Pin, SET);
-		HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, SET);
 	} else if (sensor == MAG) {
 		HAL_GPIO_WritePin(S0_SENS_GPIO_Port, S0_SENS_Pin, RESET);
 		HAL_GPIO_WritePin(S1_SENS_GPIO_Port, S1_SENS_Pin, SET);
 		HAL_GPIO_WritePin(S2_SENS_GPIO_Port, S2_SENS_Pin, SET);
-		HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, SET);
 	} else {
 		printf("Selected sensor with this ID doesn't not exists: %02x", sensor);
 	}
+
+	HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, SET);
 }
 void deselect_sensors(void) {
+	HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, RESET);
 	HAL_GPIO_WritePin(S0_SENS_GPIO_Port, S0_SENS_Pin, RESET);
 	HAL_GPIO_WritePin(S1_SENS_GPIO_Port, S1_SENS_Pin, RESET);
 	HAL_GPIO_WritePin(S2_SENS_GPIO_Port, S2_SENS_Pin, RESET);
-	HAL_GPIO_WritePin(MUX_EN_0_GPIO_Port, MUX_EN_0_Pin, RESET);
 }
 
 /* Returns FR_status after success or last failed step */

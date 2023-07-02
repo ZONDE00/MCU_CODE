@@ -72,15 +72,19 @@ int adt7310_read_reg(const adt7310_t *dev, const uint8_t addr,
 	if (adt7310_configspi(dev) != 0) {
 		return HAL_ERROR;
 	}
+
 	select_sensor(dev->sensor_cs);
+
 	/* Perform the transaction */
-	status = HAL_SPI_Transmit(dev->hspi, &command, 1, 11);
-	status = HAL_SPI_Receive(dev->hspi, buf, len, 11);
+	status = HAL_SPI_Transmit(dev->hspi, &command, 1, 100);
+	status = HAL_SPI_Receive(dev->hspi, buf, len, 100);
 	/* Release the bus. */
 	deselect_sensors();
+
 	if (adt7310_resetspi(dev) != 0) {
 		return HAL_ERROR;
 	}
+
 	if (status != HAL_OK) {
 		/* Couldn't communicate with sensor */
 		return HAL_TIMEOUT;
@@ -123,11 +127,30 @@ static int adt7310_write_reg(const adt7310_t *dev, const uint8_t addr,
 	return status;
 }
 
+HAL_StatusTypeDef adt7310_resetDevice(adt7310_t *dev){
+	dev->hspi->Init.CLKPhase = SPI_PHASE_2EDGE;
+	dev->hspi->Init.CLKPolarity = SPI_POLARITY_HIGH;
+	if (HAL_SPI_Init(dev->hspi) != HAL_OK) {
+		return HAL_ERROR;
+	}
+
+	select_sensor(dev->sensor_cs);
+
+	uint8_t tmpData[4];
+	memset(tmpData, 255, 4);
+	HAL_SPI_Transmit(dev->hspi, tmpData, 4, 100);
+
+	deselect_sensors();
+
+	return HAL_OK;
+}
+
 int adt7310_resetspi(const adt7310_t *dev) {
 	//dummy commands
 	uint8_t command = 0;
 	uint8_t received = 255;
 	uint8_t status = HAL_OK;
+
 	dev->hspi->Init.CLKPhase = SPI_PHASE_1EDGE;
 	dev->hspi->Init.CLKPolarity = SPI_POLARITY_LOW;
 	if (HAL_SPI_Init(dev->hspi) != HAL_OK) {
@@ -138,7 +161,6 @@ int adt7310_resetspi(const adt7310_t *dev) {
 	if (status != HAL_OK) {
 		return HAL_TIMEOUT;
 	}
-	HAL_Delay(100);
 	return HAL_OK;
 }
 
@@ -157,7 +179,6 @@ int adt7310_configspi(const adt7310_t *dev) {
 	if (status != HAL_OK) {
 		return HAL_TIMEOUT;
 	}
-	HAL_Delay(100);
 	return HAL_OK;
 }
 
@@ -169,6 +190,10 @@ int adt7310_init(adt7310_t *dev, SPI_HandleTypeDef *hspi, uint8_t sensor_cs) {
 	dev->sensor_cs = sensor_cs;
 	dev->initialized = false;
 	dev->high_res = false;
+
+	adt7310_resetDevice(dev);
+
+	HAL_Delay(1);
 
 	status = adt7310_read_reg(dev, ADT7310_REG_ID, 1, &received);
 

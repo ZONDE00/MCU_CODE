@@ -114,6 +114,7 @@ int16_t adt7310_read_raw(const adt7310_t *dev);
  */
 float adt7310_read_float(const adt7310_t *dev);
 
+HAL_StatusTypeDef adt7310_resetDevice(adt7310_t *dev);
 int adt7310_resetspi(const adt7310_t *dev);
 int adt7310_configspi(const adt7310_t *dev);
 int adt7310_read_reg(const adt7310_t *dev, const uint8_t addr,
